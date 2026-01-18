@@ -10,20 +10,21 @@ const router = express.Router();
 function buildReportContent(visit, entries) {
   const header = `# Visit Report\nProject: ${visit.projectName}\nLocation: ${visit.location}\nStatus: ${visit.status}\nGenerated: ${new Date().toISOString()}\n`;
 
-  const observations = entries
-    .filter((e) => e.type === 'text' && !e.isFinding)
-    .map((e) => `- ${e.text || e.transcription || 'No content'}`)
-    .join('\n') || 'No observations recorded.';
+  const acceptedTexts = entries.filter((e) => e.type === 'text');
+  const observationsList = acceptedTexts.filter((e) => !e.isFinding);
+  const findingsList = acceptedTexts.filter((e) => e.isFinding);
 
-  const findings = entries
-    .filter((e) => e.isFinding)
-    .map((e) => `- ${e.text || e.transcription || 'Finding noted'}`)
-    .join('\n') || 'No findings flagged.';
+  const observations =
+    observationsList.map((e) => `- ${e.text || e.transcription || 'No content'}`).join('\n') ||
+    'No observations recorded.';
 
-  const annexLines = entries
-    .filter((e) => e.type !== 'text')
-    .map((e) => `- ${e.type.toUpperCase()}: ${e.fileUrl || 'N/A'}`);
-  const annexes = annexLines.length > 0 ? annexLines.join('\n') : 'No annexes.';
+  const findings =
+    findingsList.map((e) => `- ${e.text || e.transcription || 'Finding noted'}`).join('\n') ||
+    'No findings flagged.';
+
+  const annexEntries = entries.filter((e) => e.type === 'audio' || e.type === 'photo');
+  const annexLines = annexEntries.map((e) => `- ${e.type.toUpperCase()}: ${e.fileUrl || 'N/A'}`);
+  const annexes = annexLines.length > 0 ? annexLines.join('\n') : 'No annexes recorded.';
 
   const objective = 'Site visit summary generated from accepted entries.';
 

@@ -3,7 +3,7 @@ const multer = require('multer');
 const Visit = require('../models/Visit');
 const Entry = require('../models/Entry');
 const auth = require('../middleware/auth');
-const { uploadFile } = require('../utils/minio');
+const { uploadFile, getPresignedUrl, client, bucket, extractObjectName } = require('../utils/minio');
 const asyncHandler = require('../utils/asyncHandler');
 
 const router = express.Router();
@@ -27,6 +27,29 @@ function runUpload(req, res, next) {
 
 function validateTextContent(text) {
   return typeof text === 'string' && text.trim().length >= 5;
+}
+
+const API_BASE =
+  (process.env.PUBLIC_API_URL && process.env.PUBLIC_API_URL.replace(/\/+$/, '')) ||
+  'http://localhost:4000';
+
+function buildProxyUrl(entry) {
+  if (!entry.fileUrl) return null;
+  const objectName = extractObjectName(entry.fileUrl);
+  if (!objectName) return null;
+  return `${API_BASE}/media/${encodeURIComponent(objectName)}`;
+}
+
+async function withAccessibleUrl(entryDoc) {
+  if (!entryDoc) return entryDoc;
+  const entry = entryDoc.toObject ? entryDoc.toObject() : entryDoc;
+  if (entry.fileUrl && ['audio', 'photo'].includes(entry.type)) {
+    const proxyUrl = buildProxyUrl(entry);
+    if (proxyUrl) {
+      entry.fileUrl = proxyUrl;
+    }
+  }
+  return entry;
 }
 
 router.post('/visits/:id/entries', auth, runUpload, asyncHandler(async (req, res) => {
@@ -93,12 +116,14 @@ router.post('/visits/:id/entries', auth, runUpload, asyncHandler(async (req, res
     isFinding: isFinding === 'true' || isFinding === true
   });
 
-  res.status(201).json({ entry });
+  const entryWithUrl = await withAccessibleUrl(entry);
+  res.status(201).json({ entry: entryWithUrl });
 }));
 
 router.get('/visits/:id/entries', auth, asyncHandler(async (req, res) => {
   const entries = await Entry.find({ visitId: req.params.id, deleted: false }).sort({ createdAt: -1 });
-  res.json({ entries });
+  const withUrls = await Promise.all(entries.map((e) => withAccessibleUrl(e)));
+  res.json({ entries: withUrls });
 }));
 
 router.patch('/entries/:id', auth, asyncHandler(async (req, res) => {
@@ -147,7 +172,36 @@ router.patch('/entries/:id', auth, asyncHandler(async (req, res) => {
 
   Object.assign(entry, updates);
   const saved = await entry.save();
-  res.json({ entry: saved });
+  const entryWithUrl = await withAccessibleUrl(saved);
+  res.json({ entry: entryWithUrl });
+}));
+
+router.get('/media/:objectName', asyncHandler(async (req, res) => {
+  const objectName = decodeURIComponent(req.params.objectName);
+  try {
+    const stat = await client.statObject(bucket, objectName);
+    const ct =
+      (stat.metaData && (stat.metaData['content-type'] || stat.metaData['Content-Type'])) ||
+      stat.contentType ||
+      'application/octet-stream';
+    res.setHeader('Content-Type', ct);
+    if (stat.size) {
+      res.setHeader('Content-Length', stat.size);
+    }
+    const stream = await client.getObject(bucket, objectName);
+    stream.on('error', (err) => {
+      console.error('Stream error', err);
+      if (!res.headersSent) {
+        res.status(500).json({ message: 'Failed to read media' });
+      } else {
+        res.end();
+      }
+    });
+    stream.pipe(res);
+  } catch (err) {
+    console.error('Media fetch failed', err);
+    res.status(404).json({ message: 'Media not found' });
+  }
 }));
 
 module.exports = router;

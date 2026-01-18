@@ -6,6 +6,7 @@ services:
     container_name: dus-fr-backend
     environment:
       - PORT=4000
+      - PUBLIC_API_URL=http://localhost:4000
       - MONGO_URI=mongodb://mongo:27017/dusfr
       - JWT_SECRET=supersecretjwt
       - MINIO_ENDPOINT=minio

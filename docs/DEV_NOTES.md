@@ -7,13 +7,15 @@
 - Text entries and photos auto-accept; audio starts pending to enforce review.
 - Added lightweight upload guardrails (MIME + size) to avoid storing unusable media and to keep MinIO predictable for MVP use.
 - Enforced explicit status transitions for audio so user approval flow stays clean; text/photo remain auto-accepted.
-- Report generation requires at least one accepted, non-deleted entry to ensure output has substance.
+- Report generation pulls only accepted entries: non-finding text → Observations, finding-marked text → Findings, photos/audios → Annexes; still requires at least one accepted entry to run.
+- Media playback: frontend uses backend-proxied URLs (`/media/:objectName`) so browser audio players work without exposing the MinIO host or making the bucket public. Proxy stays read-only and streams private objects.
 
 ## Known limitations
 - No pagination or advanced filtering on lists.
 - No role-based authorization beyond the basic user record.
 - File validation is minimal but bounded to a few MIME types and size caps; no virus scanning or deep inspection.
 - Reports overwrite the previous report for a visit (single latest stored).
+- Media proxy for playback is open (no auth header) by design to allow `<audio>` to fetch; relies on unguessable object names. No expiring URLs on the proxy path yet.
 
 ## Intentionally left out
 - AI generation, transcription, advanced roles/permissions, project hierarchy.

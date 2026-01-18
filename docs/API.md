@@ -68,9 +68,18 @@ Guardrails:
 - Text updates must still be at least 5 characters.
 Errors: `400` invalid transition/content, `404` entry not found.
 
+### Media access for audio/photo
+- `fileUrl` values returned by entry endpoints point to a backend proxy: `GET /media/:objectName`.
+- No auth header is required for this proxy so native `<audio>` players can fetch; objects remain private in MinIO and are streamed by the backend.
+- Content types are preserved for playback.
+
 ## Reports
 ### POST /visits/:id/generate-report
-Builds a Markdown report using accepted, non-deleted entries.
+Builds a Markdown report using accepted, non-deleted entries. Sections:
+- Objective: static text.
+- Observations: accepted text entries not marked as findings (bulleted; "No observations recorded." if none).
+- Findings: accepted text entries marked as findings (bulleted; "No findings flagged." if none).
+- Annexes: accepted photos and audios as links (or "No annexes recorded.").
 Response 200:
 ```json
 { "report": { "visitId": "...", "content": "# Visit Report...", "generatedAt": "..." } }

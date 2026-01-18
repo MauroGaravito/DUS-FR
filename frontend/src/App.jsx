@@ -16,6 +16,7 @@ function App() {
   const [message, setMessage] = useState('');
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [generatingReport, setGeneratingReport] = useState(false);
+  const [showAccepted, setShowAccepted] = useState(false);
 
   const authedFetch = async (path, options = {}) => {
     const headers = options.headers || {};
@@ -208,6 +209,8 @@ function App() {
   };
 
   const hasAcceptedEntries = entries.some((e) => e.status === 'accepted' && !e.deleted);
+  const pendingEntries = entries.filter((e) => e.status === 'pending' && !e.deleted);
+  const acceptedEntries = entries.filter((e) => e.status === 'accepted' && !e.deleted);
 
   if (!token) {
     return (
@@ -310,9 +313,9 @@ function App() {
               </button>
             </form>
 
-            <h3>Entries</h3>
+            <h3>Entries needing review</h3>
             <ul>
-              {entries.map((entry) => (
+              {pendingEntries.map((entry) => (
                 <li key={entry._id} style={{ marginBottom: 8 }}>
                   <div>
                     <strong>{entry.type}</strong> — {entry.status} {entry.isFinding ? '(Finding)' : ''}
@@ -325,6 +328,16 @@ function App() {
                       </a>
                     </div>
                   )}
+                  {entry.type === 'audio' && entry.fileUrl && (
+                    <div>
+                      <audio controls src={entry.fileUrl} style={{ width: '100%' }} />
+                    </div>
+                  )}
+                  {entry.type === 'photo' && entry.fileUrl && (
+                    <div>
+                      <img src={entry.fileUrl} alt="entry" style={{ maxWidth: '100%' }} />
+                    </div>
+                  )}
                   {entry.type === 'audio' && (
                     <div>
                       <button onClick={() => updateEntryStatus(entry._id, 'accepted')}>Accept</button>
@@ -333,7 +346,45 @@ function App() {
                   )}
                 </li>
               ))}
+              {pendingEntries.length === 0 && <li>No pending entries.</li>}
             </ul>
+
+            {acceptedEntries.length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <button onClick={() => setShowAccepted(!showAccepted)}>
+                  {showAccepted ? 'Hide' : 'Show'} accepted entries ({acceptedEntries.length})
+                </button>
+                {showAccepted && (
+                  <ul style={{ marginTop: 8 }}>
+                    {acceptedEntries.map((entry) => (
+                      <li key={entry._id} style={{ marginBottom: 8 }}>
+                        <div>
+                          <strong>{entry.type}</strong> — accepted {entry.isFinding ? '(Finding)' : ''}
+                        </div>
+                        {entry.text && <div>{entry.text}</div>}
+                        {entry.fileUrl && (
+                          <div>
+                            <a href={entry.fileUrl} target="_blank" rel="noreferrer">
+                              File
+                            </a>
+                          </div>
+                        )}
+                        {entry.type === 'audio' && entry.fileUrl && (
+                          <div>
+                            <audio controls src={entry.fileUrl} style={{ width: '100%' }} />
+                          </div>
+                        )}
+                        {entry.type === 'photo' && entry.fileUrl && (
+                          <div>
+                            <img src={entry.fileUrl} alt="entry" style={{ maxWidth: '100%' }} />
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
 
             <div>
               <button onClick={generateReport} disabled={!hasAcceptedEntries || generatingReport}>

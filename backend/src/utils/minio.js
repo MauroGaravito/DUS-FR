@@ -50,9 +50,47 @@ async function uploadFile(buffer, originalName, mimeType) {
   return url;
 }
 
+function extractObjectName(fileUrl) {
+  try {
+    const url = new URL(fileUrl);
+    const parts = url.pathname.replace(/^\//, '').split('/');
+    if (parts.length < 2) {
+      return null;
+    }
+    const [, ...objectParts] = parts;
+    return objectParts.join('/');
+  } catch (e) {
+    return null;
+  }
+}
+
+async function getPresignedUrl(fileUrl, expirySeconds = 3600) {
+  const objectName = extractObjectName(fileUrl);
+  if (!objectName) {
+    throw new Error('Cannot derive object name for presign');
+  }
+  const signed = await client.presignedGetObject(bucket, objectName, expirySeconds);
+  try {
+    const url = new URL(signed);
+    const publicBase =
+      process.env.MINIO_PUBLIC_URL ||
+      `http://${process.env.MINIO_ENDPOINT || 'localhost'}:${process.env.MINIO_PORT || '9000'}`;
+    const publicUrl = new URL(publicBase);
+    url.protocol = publicUrl.protocol;
+    url.hostname = publicUrl.hostname;
+    url.port = publicUrl.port || '';
+    return url.toString();
+  } catch (err) {
+    console.error('Failed to normalize presigned URL', err);
+    return signed;
+  }
+}
+
 module.exports = {
   client,
   ensureBucket,
   uploadFile,
-  bucket
+  bucket,
+  getPresignedUrl,
+  extractObjectName
 };
