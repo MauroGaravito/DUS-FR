@@ -17,6 +17,7 @@ function App() {
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [generatingReport, setGeneratingReport] = useState(false);
   const [showAccepted, setShowAccepted] = useState(false);
+  const [transcribingIds, setTranscribingIds] = useState(new Set());
 
   const authedFetch = async (path, options = {}) => {
     const headers = options.headers || {};
@@ -167,6 +168,35 @@ function App() {
       }
     } catch {
       setMessage('Update failed');
+    }
+  };
+
+  const requestTranscription = async (entryId) => {
+    const next = new Set(transcribingIds);
+    next.add(entryId);
+    setTranscribingIds(next);
+    try {
+      const res = await authedFetch(`/entries/${entryId}/transcribe`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        setEntries(entries.map((e) => (e._id === entryId ? data.entry : e)));
+        setMessage('Transcription completed');
+      } else {
+        setEntries(
+          entries.map((e) =>
+            e._id === entryId
+              ? { ...e, transcriptionStatus: 'error', transcriptionError: data.message || data.error }
+              : e
+          )
+        );
+        setMessage(data.message || 'Transcription failed');
+      }
+    } catch {
+      setMessage('Transcription failed');
+    } finally {
+      const updated = new Set(transcribingIds);
+      updated.delete(entryId);
+      setTranscribingIds(updated);
     }
   };
 
@@ -333,6 +363,36 @@ function App() {
                       <audio controls src={entry.fileUrl} style={{ width: '100%' }} />
                     </div>
                   )}
+                  {entry.type === 'audio' && (
+                    <div style={{ marginTop: 4 }}>
+                      {entry.transcriptionStatus === 'idle' && (
+                        <button
+                          onClick={() => requestTranscription(entry._id)}
+                          disabled={transcribingIds.has(entry._id)}
+                        >
+                          {transcribingIds.has(entry._id) ? 'Transcribing...' : 'Transcribe audio'}
+                        </button>
+                      )}
+                      {entry.transcriptionStatus === 'processing' && <div>Transcribing...</div>}
+                      {entry.transcriptionStatus === 'error' && (
+                        <div>
+                          <div style={{ color: 'red' }}>{entry.transcriptionError || 'Transcription failed'}</div>
+                          <button onClick={() => requestTranscription(entry._id)}>Retry transcription</button>
+                        </div>
+                      )}
+                      {entry.transcriptionStatus === 'done' && (
+                        <div style={{ marginTop: 4 }}>
+                          <label>Transcription</label>
+                          <textarea
+                            rows="3"
+                            style={{ width: '100%' }}
+                            defaultValue={entry.transcription || ''}
+                            onChange={() => {}}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {entry.type === 'photo' && entry.fileUrl && (
                     <div>
                       <img src={entry.fileUrl} alt="entry" style={{ maxWidth: '100%' }} />
@@ -372,6 +432,47 @@ function App() {
                         {entry.type === 'audio' && entry.fileUrl && (
                           <div>
                             <audio controls src={entry.fileUrl} style={{ width: '100%' }} />
+                          </div>
+                        )}
+                        {entry.type === 'audio' && (
+                          <div style={{ marginTop: 4 }}>
+                            {entry.transcriptionStatus === 'idle' && (
+                              <button
+                                onClick={() => requestTranscription(entry._id)}
+                                disabled={transcribingIds.has(entry._id)}
+                              >
+                                {transcribingIds.has(entry._id) ? 'Transcribing...' : 'Transcribe audio'}
+                              </button>
+                            )}
+                            {entry.transcriptionStatus === 'processing' && <div>Transcribing...</div>}
+                            {entry.transcriptionStatus === 'error' && (
+                              <div>
+                                <div style={{ color: 'red' }}>{entry.transcriptionError || 'Transcription failed'}</div>
+                                <button onClick={() => requestTranscription(entry._id)}>Retry transcription</button>
+                              </div>
+                            )}
+                            {entry.transcriptionStatus === 'done' && (
+                              <div style={{ marginTop: 4 }}>
+                                <label>Transcription</label>
+                                <textarea
+                                  rows="3"
+                                  style={{ width: '100%' }}
+                                  defaultValue={entry.transcription || ''}
+                                  onChange={() => {}}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {entry.type === 'audio' && entry.transcriptionStatus === 'done' && (
+                          <div style={{ marginTop: 4 }}>
+                            <label>Transcription</label>
+                            <textarea
+                              rows="3"
+                              style={{ width: '100%' }}
+                              defaultValue={entry.transcription || ''}
+                              onChange={() => {}}
+                            />
                           </div>
                         )}
                         {entry.type === 'photo' && entry.fileUrl && (

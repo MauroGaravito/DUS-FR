@@ -74,6 +74,7 @@ Request transcription for an audio entry.
 - Allowed when `transcriptionStatus` is `idle` or `error`; blocked when `processing` or `done`.
 - On success: sets `transcription`, `transcriptionStatus`=`done`, `transcribedAt`.
 - On failure: sets `transcriptionStatus`=`error`, `transcriptionError`.
+- Backend uses OpenAI audio transcription; requires `OPENAI_API_KEY` and `OPENAI_MODEL` (e.g., `whisper-1`).
 Response 200: `{ "entry": { ... } }`
 Errors: `400` invalid type or state, `404` entry not found.
 

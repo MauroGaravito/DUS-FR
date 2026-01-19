@@ -19,6 +19,9 @@ services:
       - SEED_USER_EMAIL=engineer@example.com
       - SEED_USER_PASSWORD=password123
       - SEED_USER_NAME=Default Engineer
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - OPENAI_TIMEOUT_MS=${OPENAI_TIMEOUT_MS:-60000}
     ports:
       - "4000:4000"
     depends_on:
