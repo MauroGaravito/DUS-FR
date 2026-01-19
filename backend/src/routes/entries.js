@@ -5,6 +5,7 @@ const Entry = require('../models/Entry');
 const auth = require('../middleware/auth');
 const { uploadFile, getPresignedUrl, client, bucket, extractObjectName } = require('../utils/minio');
 const asyncHandler = require('../utils/asyncHandler');
+const { requestTranscription } = require('../services/aiTranscription.service');
 
 const router = express.Router();
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
@@ -174,6 +175,41 @@ router.patch('/entries/:id', auth, asyncHandler(async (req, res) => {
   const saved = await entry.save();
   const entryWithUrl = await withAccessibleUrl(saved);
   res.json({ entry: entryWithUrl });
+}));
+
+router.post('/entries/:id/transcribe', auth, asyncHandler(async (req, res) => {
+  const entry = await Entry.findById(req.params.id);
+  if (!entry || entry.deleted) {
+    return res.status(404).json({ message: 'Entry not found' });
+  }
+  if (entry.type !== 'audio') {
+    return res.status(400).json({ message: 'Transcription available only for audio entries' });
+  }
+  if (entry.transcriptionStatus === 'processing') {
+    return res.status(400).json({ message: 'Transcription already in progress' });
+  }
+  if (entry.transcriptionStatus === 'done') {
+    return res.status(400).json({ message: 'Transcription already completed' });
+  }
+
+  entry.transcriptionStatus = 'processing';
+  entry.transcriptionError = undefined;
+  await entry.save();
+
+  try {
+    const result = await requestTranscription(entry);
+    entry.transcription = result.text;
+    entry.transcriptionStatus = 'done';
+    entry.transcribedAt = result.completedAt || new Date();
+    await entry.save();
+    const entryWithUrl = await withAccessibleUrl(entry);
+    return res.json({ entry: entryWithUrl });
+  } catch (error) {
+    entry.transcriptionStatus = 'error';
+    entry.transcriptionError = error.message || 'Transcription failed';
+    await entry.save();
+    return res.status(500).json({ message: 'Transcription failed', error: entry.transcriptionError });
+  }
 }));
 
 router.get('/media/:objectName', asyncHandler(async (req, res) => {

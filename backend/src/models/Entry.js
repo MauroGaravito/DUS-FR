@@ -7,6 +7,13 @@ const entrySchema = new mongoose.Schema(
     fileUrl: { type: String },
     text: { type: String },
     transcription: { type: String },
+    transcriptionStatus: {
+      type: String,
+      enum: ['idle', 'processing', 'done', 'error'],
+      default: 'idle'
+    },
+    transcriptionError: { type: String },
+    transcribedAt: { type: Date },
     status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
     isFinding: { type: Boolean, default: false },
     edited: { type: Boolean, default: false },

@@ -9,6 +9,7 @@
 - Enforced explicit status transitions for audio so user approval flow stays clean; text/photo remain auto-accepted.
 - Report generation pulls only accepted entries: non-finding text → Observations, finding-marked text → Findings, photos/audios → Annexes; still requires at least one accepted entry to run.
 - Media playback: frontend uses backend-proxied URLs (`/media/:objectName`) so browser audio players work without exposing the MinIO host or making the bucket public. Proxy stays read-only and streams private objects.
+- Transcription readiness: Entries track `transcriptionStatus` (idle/processing/done/error), `transcriptionError`, `transcribedAt`; a mock AI transcription service and `/entries/:id/transcribe` endpoint simulate the flow without real AI calls yet. Entry approval status remains independent.
 
 ## Known limitations
 - No pagination or advanced filtering on lists.

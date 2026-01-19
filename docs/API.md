@@ -68,6 +68,15 @@ Guardrails:
 - Text updates must still be at least 5 characters.
 Errors: `400` invalid transition/content, `404` entry not found.
 
+### POST /entries/:id/transcribe
+Request transcription for an audio entry.
+- Only audio entries.
+- Allowed when `transcriptionStatus` is `idle` or `error`; blocked when `processing` or `done`.
+- On success: sets `transcription`, `transcriptionStatus`=`done`, `transcribedAt`.
+- On failure: sets `transcriptionStatus`=`error`, `transcriptionError`.
+Response 200: `{ "entry": { ... } }`
+Errors: `400` invalid type or state, `404` entry not found.
+
 ### Media access for audio/photo
 - `fileUrl` values returned by entry endpoints point to a backend proxy: `GET /media/:objectName`.
 - No auth header is required for this proxy so native `<audio>` players can fetch; objects remain private in MinIO and are streamed by the backend.
