@@ -7,9 +7,9 @@
 - Text entries and photos auto-accept; audio starts pending to enforce review.
 - Added lightweight upload guardrails (MIME + size) to avoid storing unusable media and to keep MinIO predictable for MVP use.
 - Enforced explicit status transitions for audio so user approval flow stays clean; text/photo remain auto-accepted.
-- Report generation pulls only accepted entries: non-finding text → Observations, finding-marked text → Findings, photos/audios → Annexes; still requires at least one accepted entry to run.
+- Report generation pulls only accepted entries: non-finding text -> Observations, finding-marked text -> Findings, photos/audios -> Annexes; still requires at least one accepted entry to run.
 - Media playback: frontend uses backend-proxied URLs (`/media/:objectName`) so browser audio players work without exposing the MinIO host or making the bucket public. Proxy stays read-only and streams private objects.
-- Transcription: Entries track `transcriptionStatus` (idle/processing/done/error), `transcriptionError`, `transcribedAt`; `/entries/:id/transcribe` calls OpenAI audio transcription with `OPENAI_API_KEY`, `OPENAI_MODEL` (e.g., `whisper-1`), `OPENAI_TIMEOUT_MS`. Entry approval status remains independent; inline transcription text is editable in UI but not auto-saved.
+- Transcription: Entries track `transcriptionStatus` (idle/processing/done/error), `transcriptionError`, `transcribedAt`; `/entries/:id/transcribe` calls OpenAI audio transcription with `OPENAI_API_KEY` and `OPENAI_MODEL` (defaults to `whisper-1` if unset). `OPENAI_TIMEOUT_MS` is defined in env but not currently used in the backend. Entry approval status remains independent; inline transcription text is editable in UI but not auto-saved.
 
 ## Known limitations
 - No pagination or advanced filtering on lists.
@@ -19,13 +19,14 @@
 - Media proxy for playback is open (no auth header) by design to allow `<audio>` to fetch; relies on unguessable object names. No expiring URLs on the proxy path yet.
 
 ## Intentionally left out
-- AI generation, transcription, advanced roles/permissions, project hierarchy.
+- AI generation/summarization, advanced roles/permissions, project hierarchy.
 - Public file serving hardening (presigned URLs, ACLs) beyond simple bucket URL.
 - UI polish and routing; kept to a single-page flow.
 
 ## Next phases
-1. Add transcription pipeline for audio (manual or automated).
+1. Add background transcription jobs/queueing and retries.
 2. Introduce role-specific permissions and audit logs.
 3. Paginate visits/entries and add search.
 4. Harden media access (presigned URLs) and extend file validation (content sniffing, AV scanning).
 5. Version reports instead of overwriting.
+

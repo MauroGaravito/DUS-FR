@@ -3,18 +3,20 @@
 Node.js + Express API providing authentication, visit/entry management, report generation, and media handling via MinIO.
 
 ## Folder structure
-- `src/index.js` — app bootstrap, DB + MinIO init, routing
-- `src/routes/` — auth, users, visits, entries, reports
-- `src/models/` — `User`, `Visit`, `Entry`, `Report` Mongoose schemas
-- `src/middleware/` — JWT auth guard
-- `src/utils/` — MinIO client helpers and user seeding
-- `src/services/` — AI transcription placeholder
+- `src/index.js` - app bootstrap, DB + MinIO init, routing
+- `src/routes/` - auth, users, visits, entries, reports
+- `src/models/` - `User`, `Visit`, `Entry`, `Report` Mongoose schemas
+- `src/middleware/` - JWT auth guard
+- `src/utils/` - MinIO client helpers and user seeding
+- `src/services/` - OpenAI transcription service
 
 ## API overview
 - Auth: `POST /auth/login`
+- Health: `GET /health` (no auth)
 - Users: `GET /users/me`
 - Visits: `POST /visits`, `GET /visits`, `GET /visits/:id`, `PATCH /visits/:id`
 - Entries: `POST /visits/:id/entries`, `GET /visits/:id/entries`, `PATCH /entries/:id`, `POST /entries/:id/transcribe`
+- Media proxy: `GET /media/:objectName` (no auth)
 - Reports: `POST /visits/:id/generate-report`, `GET /visits/:id/report`
 
 ## Auth flow
@@ -34,9 +36,11 @@ Node.js + Express API providing authentication, visit/entry management, report g
 - Only file metadata + URL is stored in MongoDB.
 - Bucket name comes from `MINIO_BUCKET` and is created on boot if missing.
 - Public URLs are built from `MINIO_PUBLIC_URL` (defaults to the MinIO service/port).
+- Entry endpoints rewrite `fileUrl` to the backend media proxy using `PUBLIC_API_URL` (fallback `http://localhost:4000`) so browsers can stream media without direct MinIO access.
 
 ## Error handling philosophy
 - Input validation returns `400` with a simple `{ message }`.
 - Missing resources return `404`.
 - Auth issues return `401`.
 - Uncaught errors bubble to a last-resort 500 handler with a generic response; server logs capture details.
+

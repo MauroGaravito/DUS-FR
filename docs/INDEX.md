@@ -14,3 +14,4 @@ This folder centralizes project documentation.
 - Data: MongoDB
 - Media: MinIO (S3-compatible)
 - Orchestration: Docker Compose
+
