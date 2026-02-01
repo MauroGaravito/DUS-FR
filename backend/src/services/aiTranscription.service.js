@@ -45,7 +45,7 @@ async function requestTranscription(entry) {
   if (!apiKey) {
     throw new Error('OPENAI_API_KEY is not configured');
   }
-  const model = (process.env.OPENAI_MODEL || 'whisper-1').trim() || 'whisper-1';
+  const model = (process.env.OPENAI_TRANSCRIBE_MODEL || 'gpt-4o-mini-transcribe').trim() || 'gpt-4o-mini-transcribe';
 
   try {
     // Use native fetch/FormData to avoid SDK path issues
@@ -75,7 +75,8 @@ async function requestTranscription(entry) {
 
     return {
       text: text.trim(),
-      completedAt: new Date()
+      completedAt: new Date(),
+      model
     };
   } catch (err) {
     console.error('OpenAI transcription error', err);

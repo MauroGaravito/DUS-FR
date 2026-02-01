@@ -105,6 +105,20 @@ Response 200:
 ```
 Errors: `404` visit not found, `400` when no accepted entries (`"Cannot generate report: no accepted entries"`).
 
+### POST /visits/:id/generate-ai-report
+Builds an AI-generated JSON report from accepted, non-deleted entries.
+- Prompt selection is industry-driven via prompt files (e.g., `forestry.v1.md`, `construction.v1.md`).
+- If `industry` is omitted, the AI engine defaults to forestry.
+Request (optional):
+```json
+{ "industry": "forestry" }
+```
+Response 200:
+```json
+{ "report": { "visitId": "...", "type": "ai", "content": "{...}", "model": "...", "promptVersion": "...", "generatedAt": "..." } }
+```
+Errors: `404` visit not found, `400` when no accepted entries, `500` AI generation failure.
+
 ### GET /visits/:id/report
 Fetch the latest report for a visit.
 Response 200: `{ "report": { ... } }`

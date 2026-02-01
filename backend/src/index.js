@@ -12,6 +12,7 @@ const { ensureBucket } = require('./utils/minio');
 const { seedDefaultUser } = require('./utils/seed');
 
 const app = express();
+const ALLOWED_REPORT_MODELS = new Set(['gpt-4o', 'gpt-4.1']);
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -37,6 +38,13 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/dusfr';
 
 async function start() {
   try {
+    const reportModel = (process.env.OPENAI_REPORT_MODEL || '').trim();
+    if (reportModel && !ALLOWED_REPORT_MODELS.has(reportModel)) {
+      throw new Error(
+        `Unsupported OPENAI_REPORT_MODEL: ${reportModel}. Supported values: gpt-4o, gpt-4.1.`
+      );
+    }
+
     await mongoose.connect(MONGO_URI);
     await ensureBucket();
     await seedDefaultUser();

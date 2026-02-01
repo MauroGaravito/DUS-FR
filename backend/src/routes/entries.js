@@ -171,8 +171,37 @@ router.patch('/entries/:id', auth, asyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'Text must be at least 5 characters' });
   }
 
+  const shouldTriggerTranscription =
+    entry.type === 'audio' &&
+    updates.status === 'accepted' &&
+    entry.status !== 'accepted' &&
+    entry.transcriptionStatus !== 'done';
+
   Object.assign(entry, updates);
+  if (shouldTriggerTranscription) {
+    entry.transcriptionStatus = 'processing';
+    entry.transcriptionError = undefined;
+  }
   const saved = await entry.save();
+
+  if (shouldTriggerTranscription) {
+    try {
+      const result = await requestTranscription(saved);
+      saved.transcription = result.text;
+      saved.transcriptionStatus = 'done';
+      saved.transcribedAt = result.completedAt || new Date();
+      await saved.save();
+      console.log(`Audio transcription completed for entry ${saved._id} using ${result.model}`);
+    } catch (error) {
+      console.error(
+        `Audio transcription failed for entry ${saved._id}: ${error.message || error.toString()}`
+      );
+      saved.transcriptionStatus = 'error';
+      saved.transcriptionError = error.message || 'Transcription failed';
+      await saved.save();
+    }
+  }
+
   const entryWithUrl = await withAccessibleUrl(saved);
   res.json({ entry: entryWithUrl });
 }));
