@@ -46,6 +46,13 @@ async function start() {
     }
 
     await mongoose.connect(MONGO_URI);
+    try {
+      await mongoose.connection.collection('reports').dropIndex('visitId_1');
+    } catch (error) {
+      if (error && error.codeName !== 'IndexNotFound') {
+        console.error('Failed to drop legacy reports index', error);
+      }
+    }
     await ensureBucket();
     await seedDefaultUser();
     app.listen(PORT, () => {

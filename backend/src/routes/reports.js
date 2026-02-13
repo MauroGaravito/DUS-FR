@@ -3,6 +3,8 @@ const Visit = require('../models/Visit');
 const Entry = require('../models/Entry');
 const Report = require('../models/Report');
 const { generateAIReport } = require('../ai/engine/reportEngine');
+const { getPresignedUrl } = require('../utils/minio');
+const { requestTranscription } = require('../services/aiTranscription.service');
 const auth = require('../middleware/auth');
 const asyncHandler = require('../utils/asyncHandler');
 
@@ -73,20 +75,46 @@ router.get('/visits/:id/report', auth, asyncHandler(async (req, res) => {
   res.json({ report });
 }));
 
-function buildAIContext(visit, entries, industry) {
+async function buildAIContext(visit, entries, industry) {
   const textEntries = entries
     .filter((entry) => entry.type === 'text')
     .map((entry) => ({ content: entry.text || '', isFinding: !!entry.isFinding }));
 
-  const audioEntries = entries
+  const rawAudioEntries = entries.filter((entry) => entry.type === 'audio');
+  const audioEntries = rawAudioEntries
     .filter((entry) => entry.type === 'audio')
     .map((entry) => ({
       transcription: entry.transcription && entry.transcription.trim() ? entry.transcription : 'Transcription unavailable'
     }));
+  const doneAudioEntries = rawAudioEntries.filter((entry) => entry.transcriptionStatus === 'done');
+  const sampleTranscription =
+    audioEntries.find((entry) => entry.transcription && entry.transcription !== 'Transcription unavailable')
+      ?.transcription || '';
+  console.log(
+    `AI context audio entries: accepted=${rawAudioEntries.length} done=${doneAudioEntries.length} sample="${sampleTranscription.slice(
+      0,
+      200
+    )}"`
+  );
 
-  const imageEntries = entries
-    .filter((entry) => entry.type === 'photo')
-    .map((entry) => ({ description: entry.text || '' }));
+  const imageEntries = await Promise.all(
+    entries
+      .filter((entry) => entry.type === 'photo')
+      .map(async (entry) => {
+        let url = entry.fileUrl || null;
+        if (url) {
+          try {
+            url = await getPresignedUrl(url, 3600);
+          } catch (err) {
+            console.error('Failed to build presigned image URL', err);
+          }
+        }
+        return {
+          url,
+          description: entry.text || ''
+        };
+      })
+  );
 
   return {
     visit: {
@@ -107,6 +135,33 @@ function buildAIContext(visit, entries, industry) {
   };
 }
 
+async function transcribeAcceptedAudioEntries(entries) {
+  const audioEntries = entries.filter((entry) => entry.type === 'audio');
+  for (const entry of audioEntries) {
+    if (entry.transcriptionStatus === 'done') {
+      continue;
+    }
+    entry.transcriptionStatus = 'processing';
+    entry.transcriptionError = undefined;
+    await entry.save();
+    try {
+      const result = await requestTranscription(entry);
+      entry.transcription = result.text;
+      entry.transcriptionStatus = 'done';
+      entry.transcribedAt = result.completedAt || new Date();
+      await entry.save();
+      console.log(`Audio transcription completed for entry ${entry._id} using ${result.model}`);
+    } catch (error) {
+      entry.transcriptionStatus = 'error';
+      entry.transcriptionError = error.message || 'Transcription failed';
+      await entry.save();
+      console.error(
+        `Audio transcription failed for entry ${entry._id}: ${entry.transcriptionError}`
+      );
+    }
+  }
+}
+
 router.post('/visits/:id/generate-ai-report', auth, asyncHandler(async (req, res) => {
   const visit = await Visit.findById(req.params.id);
   if (!visit) {
@@ -119,7 +174,8 @@ router.post('/visits/:id/generate-ai-report', auth, asyncHandler(async (req, res
   }
 
   const requestedIndustry = typeof req.body?.industry === 'string' ? req.body.industry.trim() : '';
-  const context = buildAIContext(visit, entries, requestedIndustry);
+  await transcribeAcceptedAudioEntries(entries);
+  const context = await buildAIContext(visit, entries, requestedIndustry);
 
   try {
     const aiReport = await generateAIReport(context, {

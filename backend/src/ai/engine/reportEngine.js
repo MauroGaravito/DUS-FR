@@ -23,6 +23,49 @@ function injectContext(prompt, context) {
   return prompt.replace('{{AI_CONTEXT_JSON}}', contextJson);
 }
 
+function isPrivateHost(hostname) {
+  if (!hostname) return true;
+  const host = hostname.toLowerCase();
+  if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' || host === '::1') {
+    return true;
+  }
+  if (host.endsWith('.local')) return true;
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) {
+    const [a, b] = host.split('.').map((n) => parseInt(n, 10));
+    if (a === 10) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+  }
+  return false;
+}
+
+function isValidImageUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  if (!url.startsWith('http://') && !url.startsWith('https://')) return false;
+  try {
+    const parsed = new URL(url);
+    return !isPrivateHost(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function buildImageMessage(images) {
+  const items = Array.isArray(images) ? images : [];
+  const imageUrls = items.map((img) => img && img.url).filter(isValidImageUrl);
+  if (!imageUrls.length) return null;
+  return {
+    role: 'user',
+    content: [
+      {
+        type: 'text',
+        text: 'Image inputs are attached for context. If any image is inaccessible, note this in limitations.'
+      },
+      ...imageUrls.map((url) => ({ type: 'image_url', image_url: { url } }))
+    ]
+  };
+}
+
 function isPlainObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value);
 }
@@ -108,11 +151,17 @@ async function generateAIReport(context, config = {}) {
 
   const client = new OpenAI({ apiKey });
 
+  const messages = [{ role: 'system', content: prompt }];
+  const imageMessage = buildImageMessage(context?.entries?.images);
+  if (imageMessage) {
+    messages.push(imageMessage);
+  }
+
   const response = await client.chat.completions.create({
     model,
     temperature: typeof config.temperature === 'number' ? config.temperature : 0.2,
     response_format: { type: 'json_object' },
-    messages: [{ role: 'system', content: prompt }]
+    messages
   });
 
   const rawContent = response?.choices?.[0]?.message?.content;
