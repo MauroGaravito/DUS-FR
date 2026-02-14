@@ -29,6 +29,11 @@ services:
     depends_on:
       - mongo
       - minio
+    networks:
+      default: {}
+      shared_caddy_net:
+        aliases:
+          - dus-fr-backend
 
   frontend:
     build:
@@ -42,6 +47,11 @@ services:
       - "${FRONTEND_PORT:-5173}:5173"
     depends_on:
       - backend
+    networks:
+      default: {}
+      shared_caddy_net:
+        aliases:
+          - dus-fr-frontend
 
   mongo:
     image: mongo:6
@@ -68,3 +78,11 @@ services:
 volumes:
   mongo-data:
   minio-data:
+
+networks:
+  # Docker Compose creates this implicitly; declaring it keeps intent clear since
+  # backend/frontend are attached to multiple networks.
+  default: {}
+  shared_caddy_net:
+    external: true
+    name: shared_caddy_net
