@@ -24,8 +24,10 @@ services:
       - OPENAI_REPORT_MODEL=${OPENAI_REPORT_MODEL:-gpt-4o}
       - OPENAI_TRANSCRIBE_MODEL=${OPENAI_TRANSCRIBE_MODEL:-gpt-4o-mini-transcribe}
       - OPENAI_TIMEOUT_MS=${OPENAI_TIMEOUT_MS:-60000}
+    # Bind to localhost by default to avoid exposing the API publicly.
+    # In production, prefer routing all traffic through Caddy.
     ports:
-      - "${BACKEND_PORT:-4000}:4000"
+      - "127.0.0.1:${BACKEND_PORT:-4000}:4000"
     depends_on:
       - mongo
       - minio
@@ -56,8 +58,10 @@ services:
     restart: unless-stopped
     volumes:
       - mongo-data:/data/db
+    # Never publish MongoDB to the public internet.
+    # This binds only to localhost for optional admin access.
     ports:
-      - "${MONGO_PORT:-27017}:27017"
+      - "127.0.0.1:${MONGO_PORT:-27017}:27017"
 
   minio:
     image: minio/minio:RELEASE.2024-04-06T05-26-02Z
@@ -68,9 +72,11 @@ services:
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minioadmin}
     volumes:
       - minio-data:/data
+    # Bind MinIO ports to localhost by default.
+    # Backend and other containers should use the internal service name (`minio`).
     ports:
-      - "${MINIO_API_PORT:-9000}:9000"
-      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+      - "127.0.0.1:${MINIO_API_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
 
 volumes:
   mongo-data:
