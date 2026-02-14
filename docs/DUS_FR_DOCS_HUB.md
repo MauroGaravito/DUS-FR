@@ -39,7 +39,7 @@ All central docs use the `DUS_FR_` prefix and unique names to avoid ambiguity ac
 3. Access services:
 - Frontend: served by Nginx on internal `:80` and intended to be accessed through Caddy (see deployment guide)
 - Backend: `http://localhost:4000`
-- MongoDB: `localhost:27017`
+- MongoDB: `localhost:27017` (localhost only; must never be public)
 - MinIO: `http://localhost:9000`
 - MinIO Console: `http://localhost:9001`
 

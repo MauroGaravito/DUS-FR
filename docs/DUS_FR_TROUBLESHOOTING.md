@@ -65,3 +65,26 @@ Implementation reference:
 
 - `frontend/src/components/entries/EntryForm.jsx`
 
+## MongoDB Exposure (Critical)
+
+Symptom:
+
+- Unexpected databases/collections appear (for example: `READ__ME_TO_RECOVER_YOUR_DATA`).
+- Users/visits/entries disappear, or the app starts returning 401/404 unexpectedly.
+
+Most common cause:
+
+- MongoDB was published publicly (`0.0.0.0:27017->27017`) and scanned by bots.
+
+Fast checks (VPS host):
+
+```bash
+docker ps --format "table {{.Names}}\t{{.Ports}}" | grep mongo
+ss -lntp | grep 27017
+ufw status verbose
+```
+
+Expected safe posture:
+
+- Mongo published only to `127.0.0.1:27017` or not published at all.
+- UFW denies `27017/tcp` (IPv4 and IPv6).

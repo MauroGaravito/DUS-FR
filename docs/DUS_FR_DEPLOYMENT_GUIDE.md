@@ -13,8 +13,9 @@ In `docker-compose.yml`:
 
 - `frontend` is built using `frontend/Dockerfile.prod` (multi-stage build; runtime image is Nginx).
 - `frontend` does not publish ports to the host.
-- `backend` publishes `4000` for local development only.
+- `backend` is intended to be reached through Caddy; if it is published at all, it should be bound to localhost (`127.0.0.1`).
 - Both `frontend` and `backend` join an external Docker network named `shared_caddy_net` so Caddy can reach them by DNS.
+- `mongo` and `minio` must never be exposed to the public internet. For optional admin access, bind them to localhost (`127.0.0.1`).
 
 ## Required Environment Variables
 
@@ -72,6 +73,51 @@ Important notes:
   - `dus-fr-frontend` for the frontend
   - `dus-fr-backend` for the backend
 
+## Security Verification (Mongo Not Exposed)
+
+On the VPS host, confirm Docker is not publishing MongoDB to `0.0.0.0`:
+
+```bash
+docker ps --format "table {{.Names}}\t{{.Ports}}" | grep dus-fr-mongo
+docker port dus-fr-mongo
+```
+
+Expected:
+
+- `127.0.0.1:27017->27017/tcp` (localhost only), or no published port at all.
+
+Confirm the host is only listening on localhost:
+
+```bash
+ss -lntp | grep 27017
+```
+
+Expected:
+
+- `127.0.0.1:27017` (and no `0.0.0.0:27017` or `:::27017`).
+
+Firewall (example using UFW):
+
+```bash
+ufw status verbose
+```
+
+Expected:
+
+- `27017/tcp DENY IN Anywhere` (and `(v6)`).
+
+Definitive external test (run from a different machine outside the VPS):
+
+```bash
+nc -vz <VPS_PUBLIC_IP> 27017
+nmap -Pn -p 27017 <VPS_PUBLIC_IP>
+```
+
+Expected:
+
+- `nc` fails/times out
+- `nmap` shows `closed` or `filtered` (must not be `open`)
+
 ## Local Access Without Caddy (Optional)
 
 Production compose does not publish a frontend port. If you want local access without running Caddy, temporarily add:
@@ -84,4 +130,3 @@ services:
 ```
 
 Then open `http://localhost:8080`.
-

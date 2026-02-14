@@ -59,10 +59,10 @@ Media design:
 Docker Compose services:
 
 - `frontend` served by Nginx on internal `:80` (typically behind Caddy reverse proxy)
-- `backend` on `:4000`
-- `mongo` on `:27017`
-- `minio` on `:9000`
-- MinIO Console on `:9001`
+- `backend` on internal `:4000` (publish only to localhost if needed)
+- `mongo` on internal `:27017` (never publish publicly)
+- `minio` on internal `:9000` (never publish publicly)
+- MinIO Console on internal `:9001` (never publish publicly)
 
 Internal service DNS (inside compose) uses compose names (`backend`, `mongo`, `minio`).
 
