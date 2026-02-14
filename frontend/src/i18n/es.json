@@ -34,6 +34,8 @@
   "audio": "Audio",
   "photo": "Foto",
   "details": "Detalles",
+  "takePhoto": "Tomar foto",
+  "choosePhoto": "Elegir foto",
   "selectFile": "Seleccionar archivo {{type}}",
   "markAsFinding": "Marcar como hallazgo",
   "entryAdded": "Entrada agregada",

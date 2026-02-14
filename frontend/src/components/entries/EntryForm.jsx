@@ -5,7 +5,8 @@ import { useTranslation } from "react-i18next";
 
 const ACCEPTED_FILE_TYPES = {
   audio: "audio/mpeg,audio/mp3,audio/wav,audio/webm",
-  photo: "image/jpeg,image/png"
+  // Use image/* so mobile browsers offer camera + gallery choices when available.
+  photo: "image/*"
 };
 
 function EntryForm({ loading, onSubmit }) {
@@ -18,9 +19,14 @@ function EntryForm({ loading, onSubmit }) {
   });
 
   const isTextType = form.type === "text";
+  const isPhotoType = form.type === "photo";
+  const canSubmit = isTextType ? Boolean(form.text && form.text.trim()) : Boolean(form.file);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (!canSubmit) {
+      return;
+    }
     await onSubmit(form);
     setForm((prev) => ({
       ...prev,
@@ -60,23 +66,53 @@ function EntryForm({ loading, onSubmit }) {
             required
           />
         ) : (
-          <Button
-            component="label"
-            variant="outlined"
-            startIcon={<AttachFileIcon />}
-            sx={{ justifyContent: "flex-start", minHeight: 54 }}
-          >
-            {form.file ? form.file.name : t("selectFile", { type: t(form.type) })}
-            <input
-              hidden
-              type="file"
-              accept={ACCEPTED_FILE_TYPES[form.type]}
-              onChange={(event) =>
-                setForm((prev) => ({ ...prev, file: event.target.files?.[0] || null }))
-              }
-              required={!isTextType}
-            />
-          </Button>
+          <Stack spacing={1} direction={{ xs: "column", sm: "row" }}>
+            {isPhotoType ? (
+              <Button
+                component="label"
+                variant="outlined"
+                startIcon={<AttachFileIcon />}
+                sx={{ justifyContent: "flex-start", minHeight: 54, flex: 1 }}
+              >
+                {t("takePhoto")}
+                <input
+                  hidden
+                  type="file"
+                  accept={ACCEPTED_FILE_TYPES.photo}
+                  capture="environment"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0] || null;
+                    // Allow selecting the same file twice in a row.
+                    event.target.value = "";
+                    setForm((prev) => ({ ...prev, file }));
+                  }}
+                />
+              </Button>
+            ) : null}
+
+            <Button
+              component="label"
+              variant="outlined"
+              startIcon={<AttachFileIcon />}
+              sx={{ justifyContent: "flex-start", minHeight: 54, flex: 1 }}
+            >
+              {form.file
+                ? form.file.name
+                : isPhotoType
+                  ? t("choosePhoto")
+                  : t("selectFile", { type: t(form.type) })}
+              <input
+                hidden
+                type="file"
+                accept={ACCEPTED_FILE_TYPES[form.type]}
+                onChange={(event) => {
+                  const file = event.target.files?.[0] || null;
+                  event.target.value = "";
+                  setForm((prev) => ({ ...prev, file }));
+                }}
+              />
+            </Button>
+          </Stack>
         )}
         <FormControlLabel
           control={
@@ -87,7 +123,7 @@ function EntryForm({ loading, onSubmit }) {
           }
           label={t("markAsFinding")}
         />
-        <Button type="submit" variant="contained" disabled={loading}>
+        <Button type="submit" variant="contained" disabled={loading || !canSubmit}>
           {loading ? t("saving") : t("addEntry")}
         </Button>
       </Stack>
