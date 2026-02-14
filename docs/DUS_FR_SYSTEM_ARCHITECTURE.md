@@ -58,7 +58,7 @@ Media design:
 
 Docker Compose services:
 
-- `frontend` on `:5173`
+- `frontend` served by Nginx on internal `:80` (typically behind Caddy reverse proxy)
 - `backend` on `:4000`
 - `mongo` on `:27017`
 - `minio` on `:9000`

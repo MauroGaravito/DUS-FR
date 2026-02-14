@@ -40,7 +40,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.prod
       args:
-        VITE_API_URL: ${VITE_API_URL}
+        # Frontend expects a base URL; in production behind Caddy use /api
+        VITE_API_URL: ${VITE_API_URL:-/api}
     container_name: dus-fr-frontend
     restart: unless-stopped
     networks:

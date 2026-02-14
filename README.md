@@ -9,7 +9,7 @@ Quick start:
 1. Ensure Docker is running.
 2. From repo root run: `docker compose up --build`.
 3. Open:
-- Frontend: `http://localhost:5173`
+- Frontend: served via your reverse proxy (Caddy) from the `dus-fr-frontend` container on internal port `80`
 - Backend API: `http://localhost:4000`
 - MongoDB: `localhost:27017`
 - MinIO API: `http://localhost:9000`

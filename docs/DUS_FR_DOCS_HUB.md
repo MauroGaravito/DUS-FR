@@ -29,7 +29,7 @@ All central docs use the `DUS_FR_` prefix and unique names to avoid ambiguity ac
 1. Ensure Docker is running.
 2. Run `docker compose up --build` from repo root.
 3. Access services:
-- Frontend: `http://localhost:5173`
+- Frontend: served via your reverse proxy (Caddy) from the `dus-fr-frontend` container on internal port `80`
 - Backend: `http://localhost:4000`
 - MongoDB: `localhost:27017`
 - MinIO: `http://localhost:9000`
