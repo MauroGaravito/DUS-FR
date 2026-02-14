@@ -2,6 +2,7 @@ import MicIcon from "@mui/icons-material/Mic";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import SubjectIcon from "@mui/icons-material/Subject";
 import { Button, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 const statusColorMap = {
   pending: "warning",
@@ -16,6 +17,7 @@ function EntryItem({
   transcribing,
   updatingStatus
 }) {
+  const { t } = useTranslation();
   const isAudio = entry.type === "audio";
   const isPhoto = entry.type === "photo";
   const showReviewActions = isAudio && entry.status === "pending";
@@ -30,7 +32,7 @@ function EntryItem({
             {isAudio && <MicIcon color="action" />}
             {isPhoto && <PhotoCameraIcon color="action" />}
             <Chip
-              label={entry.type}
+              label={t(entry.type)}
               size="small"
               sx={{ textTransform: "capitalize" }}
               variant="outlined"
@@ -41,7 +43,7 @@ function EntryItem({
               color={statusColorMap[entry.status] || "default"}
               sx={{ textTransform: "capitalize" }}
             />
-            {entry.isFinding && <Chip label="Finding" size="small" color="secondary" />}
+            {entry.isFinding && <Chip label={t("finding")} size="small" color="secondary" />}
           </Stack>
 
           {entry.text && (
@@ -52,7 +54,7 @@ function EntryItem({
 
           {entry.fileUrl && (
             <Button href={entry.fileUrl} target="_blank" rel="noreferrer" variant="text" sx={{ px: 0 }}>
-              Open File
+              {t("openFile")}
             </Button>
           )}
 
@@ -71,7 +73,7 @@ function EntryItem({
           {isAudio && (
             <Stack spacing={1}>
               <Typography variant="caption" color="text.secondary">
-                Transcription status: {entry.transcriptionStatus || "idle"}
+                {t("transcriptionStatus", { status: entry.transcriptionStatus || "idle" })}
               </Typography>
               {entry.transcription && (
                 <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
@@ -95,7 +97,7 @@ function EntryItem({
                   disabled={updatingStatus}
                   onClick={() => onChangeStatus(entry._id, "accepted")}
                 >
-                  Accept
+                  {t("accept")}
                 </Button>
                 <Button
                   variant="outlined"
@@ -103,7 +105,7 @@ function EntryItem({
                   disabled={updatingStatus}
                   onClick={() => onChangeStatus(entry._id, "rejected")}
                 >
-                  Reject
+                  {t("reject")}
                 </Button>
               </>
             )}
@@ -113,7 +115,7 @@ function EntryItem({
                 disabled={transcribing || !canTranscribe}
                 onClick={() => onTranscribe(entry._id)}
               >
-                {transcribing ? "Transcribing..." : "Transcribe"}
+                {transcribing ? t("transcribing") : t("transcribe")}
               </Button>
             )}
           </Stack>

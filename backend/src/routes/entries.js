@@ -188,6 +188,7 @@ router.patch('/entries/:id', auth, asyncHandler(async (req, res) => {
     try {
       const result = await requestTranscription(saved);
       saved.transcription = result.text;
+      saved.transcriptionLanguage = result.language || null;
       saved.transcriptionStatus = 'done';
       saved.transcribedAt = result.completedAt || new Date();
       await saved.save();
@@ -228,6 +229,7 @@ router.post('/entries/:id/transcribe', auth, asyncHandler(async (req, res) => {
   try {
     const result = await requestTranscription(entry);
     entry.transcription = result.text;
+    entry.transcriptionLanguage = result.language || null;
     entry.transcriptionStatus = 'done';
     entry.transcribedAt = result.completedAt || new Date();
     await entry.save();

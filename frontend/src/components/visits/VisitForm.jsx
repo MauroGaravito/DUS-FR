@@ -1,7 +1,9 @@
 import { Button, DialogActions, DialogContent, DialogTitle, Stack, TextField } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 function VisitForm({ loading, onCancel, onSubmit }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({ projectName: "", location: "" });
 
   useEffect(() => {
@@ -15,17 +17,17 @@ function VisitForm({ loading, onCancel, onSubmit }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <DialogTitle>Create Visit</DialogTitle>
+      <DialogTitle>{t("createVisit")}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ pt: 1 }}>
           <TextField
-            label="Project Name"
+            label={t("projectName")}
             value={form.projectName}
             onChange={(event) => setForm((prev) => ({ ...prev, projectName: event.target.value }))}
             required
           />
           <TextField
-            label="Location"
+            label={t("location")}
             value={form.location}
             onChange={(event) => setForm((prev) => ({ ...prev, location: event.target.value }))}
             required
@@ -34,10 +36,10 @@ function VisitForm({ loading, onCancel, onSubmit }) {
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onCancel} color="inherit">
-          Cancel
+          {t("cancel")}
         </Button>
         <Button variant="contained" type="submit" disabled={loading}>
-          {loading ? "Saving..." : "Save Visit"}
+          {loading ? t("saving") : t("saveVisit")}
         </Button>
       </DialogActions>
     </form>

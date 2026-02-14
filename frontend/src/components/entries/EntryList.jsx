@@ -1,4 +1,5 @@
 import { Stack, Typography } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import EntryItem from "./EntryItem";
 
 function EntryList({
@@ -8,8 +9,10 @@ function EntryList({
   transcribingIds,
   updatingEntryId
 }) {
+  const { t } = useTranslation();
+
   if (!entries.length) {
-    return <Typography color="text.secondary">No entries registered yet.</Typography>;
+    return <Typography color="text.secondary">{t("noEntriesRegistered")}</Typography>;
   }
 
   return (

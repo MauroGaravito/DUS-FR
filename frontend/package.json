@@ -12,9 +12,13 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^5.15.20",
     "@mui/material": "^5.15.20",
+    "html2canvas": "^1.4.1",
+    "i18next": "^25.8.7",
+    "jspdf": "^4.1.0",
     "marked": "^12.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-i18next": "^16.5.4",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^6.28.1"
   },

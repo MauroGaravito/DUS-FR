@@ -1,0 +1,104 @@
+{
+  "login": "Iniciar sesión",
+  "dashboard": "Panel",
+  "generateClassic": "Generar reporte clásico",
+  "generateAI": "Generar reporte IA",
+  "saveChanges": "Guardar cambios",
+  "exportPDF": "Exportar PDF",
+  "reportLanguage": "Idioma del reporte",
+  "noReport": "Aún no hay reporte generado",
+  "fieldReport": "Reporte de campo",
+  "engineer": "Ingeniero",
+  "signInToContinue": "Inicia sesión para continuar",
+  "email": "Correo",
+  "password": "Contraseña",
+  "loginFailed": "Error de inicio de sesión",
+  "welcomeUser": "Bienvenido {{name}}",
+  "createVisit": "Crear visita",
+  "visitCreated": "Visita creada",
+  "couldNotLoadVisits": "No se pudieron cargar las visitas",
+  "couldNotCreateVisit": "No se pudo crear la visita",
+  "projectName": "Nombre del proyecto",
+  "location": "Ubicación",
+  "cancel": "Cancelar",
+  "saving": "Guardando...",
+  "saveVisit": "Guardar visita",
+  "noVisitsCreated": "No hay visitas creadas todavía.",
+  "openVisit": "Abrir visita",
+  "visitDetail": "Detalle de visita",
+  "report": "Reporte",
+  "entries": "Entradas",
+  "addEntry": "Agregar entrada",
+  "entryType": "Tipo de entrada",
+  "text": "Texto",
+  "audio": "Audio",
+  "photo": "Foto",
+  "details": "Detalles",
+  "selectFile": "Seleccionar archivo {{type}}",
+  "markAsFinding": "Marcar como hallazgo",
+  "entryAdded": "Entrada agregada",
+  "entryUpdated": "Entrada actualizada",
+  "updateFailed": "Error al actualizar",
+  "accept": "Aceptar",
+  "reject": "Rechazar",
+  "transcribe": "Transcribir",
+  "transcribing": "Transcribiendo...",
+  "transcriptionStatus": "Estado de transcripción: {{status}}",
+  "openFile": "Abrir archivo",
+  "finding": "Hallazgo",
+  "observations": "Observaciones",
+  "findings": "Hallazgos",
+  "executiveSummary": "Resumen ejecutivo",
+  "limitations": "Limitaciones",
+  "conclusion": "Conclusión",
+  "generated": "Generado: {{date}}",
+  "typeLabel": "Tipo: {{type}}",
+  "classicType": "Clásico",
+  "aiType": "IA",
+  "processing": "Procesando...",
+  "exporting": "Exportando...",
+  "acceptedEntriesRequired": "Se requieren entradas aceptadas para generar reportes clásico o IA.",
+  "acceptedEntriesRequiredLegacy": "Se requieren entradas aceptadas antes de generar reportes.",
+  "generateWorkspaceHint": "Genera un reporte clásico o IA para iniciar este espacio de documento.",
+  "aiReportSummary": "Resumen del reporte IA",
+  "noSummaryAvailable": "No hay resumen disponible.",
+  "reportWorkspaceLoadError": "No se pudo cargar el espacio de reportes",
+  "reportGeneratedClassic": "Reporte clásico generado",
+  "reportGeneratedAI": "Reporte IA generado",
+  "saveAIChangesSuccess": "Cambios del reporte IA guardados",
+  "saveAIChangesError": "No se pudieron guardar los cambios del reporte",
+  "exportPdfSuccess": "PDF exportado",
+  "exportPdfError": "No se pudo exportar el PDF",
+  "reportContentNotReady": "El contenido del reporte no está listo para exportar",
+  "regenerateReportTitle": "¿Regenerar reporte?",
+  "regenerateReportMessage": "Regenerar reemplazará el contenido actual del reporte. Los cambios sin guardar se perderán.",
+  "continue": "Continuar",
+  "language": "Idioma",
+  "english": "Inglés",
+  "spanish": "Español",
+  "portuguese": "Portugués",
+  "reportSaved": "Reporte guardado"
+  ,"noEntriesRegistered": "No hay entradas registradas todavía."
+  ,"observation": "Observación"
+  ,"addObservation": "Agregar observación"
+  ,"title": "Título"
+  ,"severity": "Severidad"
+  ,"low": "Baja"
+  ,"medium": "Media"
+  ,"high": "Alta"
+  ,"evidence": "Evidencia"
+  ,"recommendation": "Recomendación"
+  ,"addFinding": "Agregar hallazgo"
+  ,"locationNotAvailable": "Ubicación no disponible"
+  ,"fetchReportError": "No se pudo obtener el reporte"
+  ,"loadVisitError": "No se pudo cargar la visita"
+  ,"addEntryError": "No se pudo agregar la entrada"
+  ,"updateEntryError": "No se pudo actualizar la entrada"
+  ,"transcriptionCompleted": "Transcripción completada"
+  ,"transcriptionFailed": "La transcripción falló"
+  ,"generateReportError": "No se pudo generar el reporte"
+  ,"generateAIError": "No se pudo generar el reporte IA"
+  ,"visitNotFound": "Visita no encontrada."
+  ,"status": "Estado"
+  ,"untitledProject": "Proyecto sin título"
+}

@@ -45,7 +45,7 @@ export const appTheme = createTheme({
   components: {
     MuiButton: {
       defaultProps: {
-        size: "large"
+        size: "medium"
       }
     },
     MuiTextField: {

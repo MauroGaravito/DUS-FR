@@ -104,10 +104,23 @@ export async function generateReport(visitId) {
   return request(`/visits/${visitId}/generate-report`, { method: "POST" });
 }
 
-export async function generateAIReport(visitId) {
-  return request(`/visits/${visitId}/generate-ai-report`, { method: "POST" });
+export async function generateAIReport(visitId, payload = {}) {
+  return request(`/visits/${visitId}/generate-ai-report`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
 }
 
-export async function getLatestReport(visitId) {
-  return request(`/visits/${visitId}/report`);
+export async function getLatestReport(visitId, type) {
+  const query = type ? `?type=${encodeURIComponent(type)}` : "";
+  return request(`/visits/${visitId}/report${query}`);
+}
+
+export async function updateReportContent(reportId, content) {
+  return request(`/reports/${reportId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content })
+  });
 }

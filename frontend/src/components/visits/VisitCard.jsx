@@ -1,8 +1,11 @@
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import PlaceIcon from "@mui/icons-material/Place";
 import { Button, Card, CardActions, CardContent, Chip, Stack, Typography } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 function VisitCard({ visit, onOpen }) {
+  const { t } = useTranslation();
+
   return (
     <Card>
       <CardContent>
@@ -24,7 +27,7 @@ function VisitCard({ visit, onOpen }) {
       </CardContent>
       <CardActions sx={{ px: 2, pb: 2 }}>
         <Button fullWidth variant="contained" endIcon={<ArrowForwardIcon />} onClick={() => onOpen(visit)}>
-          Open Visit
+          {t("openVisit")}
         </Button>
       </CardActions>
     </Card>

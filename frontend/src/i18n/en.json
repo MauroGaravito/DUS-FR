@@ -1,0 +1,104 @@
+{
+  "login": "Login",
+  "dashboard": "Dashboard",
+  "generateClassic": "Generate Classic Report",
+  "generateAI": "Generate AI Report",
+  "saveChanges": "Save Changes",
+  "exportPDF": "Export PDF",
+  "reportLanguage": "Report Language",
+  "noReport": "No report generated yet",
+  "fieldReport": "Field Report",
+  "engineer": "Engineer",
+  "signInToContinue": "Sign in to continue",
+  "email": "Email",
+  "password": "Password",
+  "loginFailed": "Login failed",
+  "welcomeUser": "Welcome {{name}}",
+  "createVisit": "Create Visit",
+  "visitCreated": "Visit created",
+  "couldNotLoadVisits": "Could not load visits",
+  "couldNotCreateVisit": "Could not create visit",
+  "projectName": "Project Name",
+  "location": "Location",
+  "cancel": "Cancel",
+  "saving": "Saving...",
+  "saveVisit": "Save Visit",
+  "noVisitsCreated": "No visits created yet.",
+  "openVisit": "Open Visit",
+  "visitDetail": "Visit Detail",
+  "report": "Report",
+  "entries": "Entries",
+  "addEntry": "Add Entry",
+  "entryType": "Entry Type",
+  "text": "Text",
+  "audio": "Audio",
+  "photo": "Photo",
+  "details": "Details",
+  "selectFile": "Select {{type}} file",
+  "markAsFinding": "Mark as finding",
+  "entryAdded": "Entry added",
+  "entryUpdated": "Entry updated",
+  "updateFailed": "Update failed",
+  "accept": "Accept",
+  "reject": "Reject",
+  "transcribe": "Transcribe",
+  "transcribing": "Transcribing...",
+  "transcriptionStatus": "Transcription status: {{status}}",
+  "openFile": "Open File",
+  "finding": "Finding",
+  "observations": "Observations",
+  "findings": "Findings",
+  "executiveSummary": "Executive Summary",
+  "limitations": "Limitations",
+  "conclusion": "Conclusion",
+  "generated": "Generated: {{date}}",
+  "typeLabel": "Type: {{type}}",
+  "classicType": "Classic",
+  "aiType": "AI",
+  "processing": "Processing...",
+  "exporting": "Exporting...",
+  "acceptedEntriesRequired": "Accepted entries are required to generate classic or AI reports.",
+  "acceptedEntriesRequiredLegacy": "Accepted entries are required before generating reports.",
+  "generateWorkspaceHint": "Generate a classic or AI report to start this document workspace.",
+  "aiReportSummary": "AI Report Summary",
+  "noSummaryAvailable": "No summary available.",
+  "reportWorkspaceLoadError": "Could not load report workspace",
+  "reportGeneratedClassic": "Classic report generated",
+  "reportGeneratedAI": "AI report generated",
+  "saveAIChangesSuccess": "AI report changes saved",
+  "saveAIChangesError": "Could not save report changes",
+  "exportPdfSuccess": "PDF exported",
+  "exportPdfError": "Could not export PDF",
+  "reportContentNotReady": "Report content is not ready for export",
+  "regenerateReportTitle": "Regenerate report?",
+  "regenerateReportMessage": "Regenerating will replace the current report content. Unsaved edits will be lost.",
+  "continue": "Continue",
+  "language": "Language",
+  "english": "English",
+  "spanish": "Spanish",
+  "portuguese": "Portuguese",
+  "reportSaved": "Report saved"
+  ,"noEntriesRegistered": "No entries registered yet."
+  ,"observation": "Observation"
+  ,"addObservation": "Add Observation"
+  ,"title": "Title"
+  ,"severity": "Severity"
+  ,"low": "Low"
+  ,"medium": "Medium"
+  ,"high": "High"
+  ,"evidence": "Evidence"
+  ,"recommendation": "Recommendation"
+  ,"addFinding": "Add Finding"
+  ,"locationNotAvailable": "Location not available"
+  ,"fetchReportError": "Could not fetch report"
+  ,"loadVisitError": "Could not load visit"
+  ,"addEntryError": "Could not add entry"
+  ,"updateEntryError": "Could not update entry"
+  ,"transcriptionCompleted": "Transcription completed"
+  ,"transcriptionFailed": "Transcription failed"
+  ,"generateReportError": "Could not generate report"
+  ,"generateAIError": "Could not generate AI report"
+  ,"visitNotFound": "Visit not found."
+  ,"status": "Status"
+  ,"untitledProject": "Untitled Project"
+}

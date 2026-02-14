@@ -10,10 +10,11 @@ import {
   Typography
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useOutletContext, useParams } from "react-router-dom";
 import EntryForm from "../components/entries/EntryForm";
 import EntryList from "../components/entries/EntryList";
-import ReportViewer from "../components/reports/ReportViewer";
+import ReportViewerLegacy from "../components/reports/ReportViewerLegacy";
 import {
   createFileEntry,
   createTextEntry,
@@ -31,6 +32,7 @@ function getErrorMessage(err, fallback) {
 }
 
 function VisitDetail({ defaultTab = 0 }) {
+  const { t } = useTranslation();
   const { visitId } = useParams();
   const { showMessage } = useOutletContext();
 
@@ -69,18 +71,18 @@ function VisitDetail({ defaultTab = 0 }) {
           }
         } catch (err) {
           if (err.status !== 404) {
-            showMessage(getErrorMessage(err, "Could not fetch report"), "error");
+            showMessage(getErrorMessage(err, t("fetchReportError")), "error");
           }
         }
       } catch (err) {
-        showMessage(getErrorMessage(err, "Could not load visit"), "error");
+        showMessage(getErrorMessage(err, t("loadVisitError")), "error");
       } finally {
         setLoading(false);
       }
     }
 
     loadVisitData();
-  }, [visitId, showMessage]);
+  }, [visitId, showMessage, t]);
 
   const orderedEntries = useMemo(
     () =>
@@ -105,9 +107,9 @@ function VisitDetail({ defaultTab = 0 }) {
           ? await createTextEntry(visitId, payload)
           : await createFileEntry(visitId, payload);
       setEntries((prev) => [data.entry, ...prev]);
-      showMessage("Entry added", "success");
+      showMessage(t("entryAdded"), "success");
     } catch (err) {
-      showMessage(getErrorMessage(err, "Could not add entry"), "error");
+      showMessage(getErrorMessage(err, t("addEntryError")), "error");
       throw err;
     } finally {
       setSavingEntry(false);
@@ -119,9 +121,9 @@ function VisitDetail({ defaultTab = 0 }) {
     try {
       const data = await updateEntry(entryId, { status });
       setEntries((prev) => prev.map((entry) => (entry._id === entryId ? data.entry : entry)));
-      showMessage("Entry updated", "success");
+      showMessage(t("entryUpdated"), "success");
     } catch (err) {
-      showMessage(getErrorMessage(err, "Could not update entry"), "error");
+      showMessage(getErrorMessage(err, t("updateEntryError")), "error");
     } finally {
       setUpdatingEntryId("");
     }
@@ -136,9 +138,9 @@ function VisitDetail({ defaultTab = 0 }) {
     try {
       const data = await transcribeEntry(entryId);
       setEntries((prev) => prev.map((entry) => (entry._id === entryId ? data.entry : entry)));
-      showMessage("Transcription completed", "success");
+      showMessage(t("transcriptionCompleted"), "success");
     } catch (err) {
-      showMessage(getErrorMessage(err, "Transcription failed"), "error");
+      showMessage(getErrorMessage(err, t("transcriptionFailed")), "error");
     } finally {
       setTranscribingIds((prev) => {
         const next = new Set(prev);
@@ -153,9 +155,9 @@ function VisitDetail({ defaultTab = 0 }) {
     try {
       const data = await generateReport(visitId);
       setReport(data.report || null);
-      showMessage("Report generated", "success");
+      showMessage(t("reportGeneratedClassic"), "success");
     } catch (err) {
-      showMessage(getErrorMessage(err, "Could not generate report"), "error");
+      showMessage(getErrorMessage(err, t("generateReportError")), "error");
     } finally {
       setGeneratingReportState(false);
     }
@@ -166,9 +168,9 @@ function VisitDetail({ defaultTab = 0 }) {
     try {
       const data = await generateAIReport(visitId);
       setAiReport(data.report || null);
-      showMessage("AI report generated", "success");
+      showMessage(t("reportGeneratedAI"), "success");
     } catch (err) {
-      showMessage(getErrorMessage(err, "Could not generate AI report"), "error");
+      showMessage(getErrorMessage(err, t("generateAIError")), "error");
     } finally {
       setGeneratingAIState(false);
     }
@@ -183,20 +185,20 @@ function VisitDetail({ defaultTab = 0 }) {
   }
 
   if (!visit) {
-    return <Alert severity="error">Visit not found.</Alert>;
+    return <Alert severity="error">{t("visitNotFound")}</Alert>;
   }
 
   return (
-    <Stack spacing={3}>
+    <Stack spacing={{ xs: 2, md: 2.5 }}>
       <Card>
         <CardContent>
           <Stack spacing={1}>
             <Typography variant="h5">{visit.projectName}</Typography>
             <Typography variant="body2" color="text.secondary">
-              Location: {visit.location}
+              {t("location")}: {visit.location}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ textTransform: "capitalize" }}>
-              Status: {visit.status}
+              {t("status")}: {visit.status}
             </Typography>
           </Stack>
         </CardContent>
@@ -204,17 +206,17 @@ function VisitDetail({ defaultTab = 0 }) {
 
       <Box>
         <Tabs value={tabValue} onChange={(_event, value) => setTabValue(value)} variant="fullWidth">
-          <Tab label="Entries" />
-          <Tab label="Report" />
+          <Tab label={t("entries")} />
+          <Tab label={t("report")} />
         </Tabs>
       </Box>
 
       {tabValue === 0 && (
-        <Stack spacing={3}>
+        <Stack spacing={2}>
           <Card>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 2 }}>
-                Add Entry
+                {t("addEntry")}
               </Typography>
               <EntryForm loading={savingEntry} onSubmit={handleAddEntry} />
             </CardContent>
@@ -230,7 +232,7 @@ function VisitDetail({ defaultTab = 0 }) {
       )}
 
       {tabValue === 1 && (
-        <ReportViewer
+        <ReportViewerLegacy
           report={report}
           aiReport={aiReport}
           hasAcceptedEntries={hasAcceptedEntries}

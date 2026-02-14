@@ -13,6 +13,7 @@ const entrySchema = new mongoose.Schema(
       default: 'idle'
     },
     transcriptionError: { type: String },
+    transcriptionLanguage: { type: String, enum: ['en', 'es', 'pt'], default: null },
     transcribedAt: { type: Date },
     status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
     isFinding: { type: Boolean, default: false },

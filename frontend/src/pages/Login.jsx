@@ -10,11 +10,13 @@ import {
   Typography
 } from "@mui/material";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { login } from "../services/api";
 import { setToken } from "../services/auth";
 
 function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     email: "engineer@example.com",
@@ -32,7 +34,7 @@ function Login() {
       setToken(data.token);
       navigate("/dashboard", { replace: true });
     } catch (err) {
-      setError(err.message || "Login failed");
+      setError(err.message || t("loginFailed"));
     } finally {
       setLoading(false);
     }
@@ -53,29 +55,29 @@ function Login() {
         <CardContent sx={{ p: { xs: 3, md: 4 } }}>
           <Stack spacing={3}>
             <Box>
-              <Typography variant="h5">Field Report Login</Typography>
+              <Typography variant="h5">{t("fieldReport")} {t("login")}</Typography>
               <Typography variant="body2" color="text.secondary">
-                Sign in to continue
+                {t("signInToContinue")}
               </Typography>
             </Box>
             {error && <Alert severity="error">{error}</Alert>}
             <Box component="form" onSubmit={handleSubmit}>
               <Stack spacing={2}>
                 <TextField
-                  label="Email"
+                  label={t("email")}
                   value={form.email}
                   onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
                   required
                 />
                 <TextField
-                  label="Password"
+                  label={t("password")}
                   type="password"
                   value={form.password}
                   onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
                   required
                 />
                 <Button type="submit" variant="contained" disabled={loading} sx={{ minHeight: 52 }}>
-                  {loading ? <CircularProgress size={22} color="inherit" /> : "Login"}
+                  {loading ? <CircularProgress size={22} color="inherit" /> : t("login")}
                 </Button>
               </Stack>
             </Box>

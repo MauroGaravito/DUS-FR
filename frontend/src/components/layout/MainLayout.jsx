@@ -1,9 +1,10 @@
-import { Alert, Box, CircularProgress, Container, Snackbar, Toolbar } from "@mui/material";
+import { Alert, Box, CircularProgress, Snackbar, Toolbar } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { getMe } from "../../services/api";
 import { clearToken } from "../../services/auth";
-import SideNav, { drawerWidth } from "./SideNav";
+import SideNav from "./SideNav";
+import { APP_BAR_HEIGHT, DRAWER_WIDTH } from "./layoutConfig";
 import TopBar from "./TopBar";
 
 function MainLayout() {
@@ -49,7 +50,7 @@ function MainLayout() {
   }
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
+    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default", overflowX: "hidden" }}>
       <TopBar
         onMenuClick={() => setMobileOpen(true)}
         onLogout={handleLogout}
@@ -60,13 +61,13 @@ function MainLayout() {
         component="main"
         sx={{
           flexGrow: 1,
-          width: { md: `calc(100% - ${drawerWidth}px)` }
+          width: "100%"
         }}
       >
-        <Toolbar />
-        <Container maxWidth="xl" sx={{ py: { xs: 2, md: 3 } }}>
+        <Toolbar sx={{ minHeight: APP_BAR_HEIGHT }} />
+        <Box sx={{ py: { xs: 1.5, md: 2.5 }, px: { xs: 1.5, sm: 2, md: 2.5 } }}>
           <Outlet context={{ user, showMessage }} />
-        </Container>
+        </Box>
       </Box>
       <Snackbar
         open={snackbar.open}

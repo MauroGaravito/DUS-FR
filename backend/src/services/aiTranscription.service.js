@@ -16,6 +16,17 @@ Rules:
 - Output ONLY the transcription text.
 `.trim();
 
+function normalizeLanguage(value) {
+  if (!value || typeof value !== 'string') return null;
+  const raw = value.trim().toLowerCase();
+  const direct = new Set(['en', 'es', 'pt']);
+  if (direct.has(raw)) return raw;
+  if (raw.startsWith('en')) return 'en';
+  if (raw.startsWith('es') || raw.includes('spanish') || raw.includes('espa')) return 'es';
+  if (raw.startsWith('pt') || raw.includes('portugu')) return 'pt';
+  return null;
+}
+
 async function readObjectAsBuffer(objectName) {
   const stat = await client.statObject(bucket, objectName);
   const stream = await client.getObject(bucket, objectName);
@@ -53,7 +64,7 @@ async function requestTranscription(entry) {
     form.append('model', model);
     form.append('file', new Blob([buffer], { type: contentType || 'audio/mpeg' }), 'audio.mp3');
     form.append('prompt', PROMPT);
-    form.append('response_format', 'text');
+    form.append('response_format', 'verbose_json');
 
     const resp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
@@ -68,15 +79,26 @@ async function requestTranscription(entry) {
       throw new Error(`OpenAI transcription failed: ${resp.status} ${resp.statusText} - ${errorBody}`);
     }
 
-    const text = await resp.text();
+    const raw = await resp.text();
+    let parsed = null;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (_error) {
+      parsed = null;
+    }
+
+    const text = typeof parsed?.text === 'string' ? parsed.text : raw;
     if (!text || !text.trim()) {
       throw new Error('OpenAI returned empty transcription');
     }
 
+    const detectedLanguage = normalizeLanguage(parsed?.language);
+
     return {
       text: text.trim(),
       completedAt: new Date(),
-      model
+      model,
+      language: detectedLanguage
     };
   } catch (err) {
     console.error('OpenAI transcription error', err);

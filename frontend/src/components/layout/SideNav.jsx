@@ -3,13 +3,14 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar } from "@mui/material";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
-
-const drawerWidth = 260;
+import { APP_BAR_HEIGHT, DRAWER_WIDTH } from "./layoutConfig";
 
 function SideNav({ mobileOpen, onClose }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const visitId = useMemo(() => {
     const match = location.pathname.match(/^\/visits\/([^/]+)/);
@@ -17,18 +18,18 @@ function SideNav({ mobileOpen, onClose }) {
   }, [location.pathname]);
 
   const items = [
-    { label: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
+    { label: t("dashboard"), icon: <DashboardIcon />, path: "/dashboard" },
     ...(visitId
       ? [
-          { label: "Visit Detail", icon: <AssessmentIcon />, path: `/visits/${visitId}` },
-          { label: "Report", icon: <DescriptionIcon />, path: `/visits/${visitId}/report` }
+          { label: t("visitDetail"), icon: <AssessmentIcon />, path: `/visits/${visitId}` },
+          { label: t("report"), icon: <DescriptionIcon />, path: `/visits/${visitId}/report` }
         ]
       : [])
   ];
 
   const content = (
     <>
-      <Toolbar />
+      <Toolbar sx={{ minHeight: APP_BAR_HEIGHT }} />
       <List sx={{ px: 1 }}>
         {items.map((item) => (
           <ListItemButton
@@ -57,7 +58,7 @@ function SideNav({ mobileOpen, onClose }) {
         ModalProps={{ keepMounted: true }}
         sx={{
           display: { xs: "block", md: "none" },
-          "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth }
+          "& .MuiDrawer-paper": { boxSizing: "border-box", width: DRAWER_WIDTH }
         }}
       >
         {content}
@@ -67,7 +68,12 @@ function SideNav({ mobileOpen, onClose }) {
         open
         sx={{
           display: { xs: "none", md: "block" },
-          "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth }
+          width: DRAWER_WIDTH,
+          flexShrink: 0,
+          "& .MuiDrawer-paper": {
+            boxSizing: "border-box",
+            width: DRAWER_WIDTH
+          }
         }}
       >
         {content}
@@ -76,5 +82,4 @@ function SideNav({ mobileOpen, onClose }) {
   );
 }
 
-export { drawerWidth };
 export default SideNav;

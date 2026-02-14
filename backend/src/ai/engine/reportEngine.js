@@ -5,6 +5,11 @@ const reportSchema = require('../schemas/reportOutput.schema.json');
 
 const PROMPT_DIR = path.join(__dirname, '..', 'prompts');
 const ALLOWED_MODELS = new Set(['gpt-4o', 'gpt-4.1']);
+const LANGUAGE_NAME_MAP = {
+  en: 'English',
+  es: 'Spanish',
+  pt: 'Portuguese'
+};
 
 function loadPrompt(industry, version) {
   const safeIndustry = (industry || 'construction').trim().toLowerCase();
@@ -21,6 +26,22 @@ function loadPrompt(industry, version) {
 function injectContext(prompt, context) {
   const contextJson = JSON.stringify(context, null, 2);
   return prompt.replace('{{AI_CONTEXT_JSON}}', contextJson);
+}
+
+function resolveLanguageName(languageCode) {
+  if (!languageCode || typeof languageCode !== 'string') return LANGUAGE_NAME_MAP.en;
+  return LANGUAGE_NAME_MAP[languageCode.toLowerCase()] || LANGUAGE_NAME_MAP.en;
+}
+
+function injectLanguageInstruction(prompt, languageCode) {
+  const languageName = resolveLanguageName(languageCode);
+  const instruction = [
+    '',
+    `Language instruction: You MUST generate the entire report strictly in ${languageName}.`,
+    `All headings, sections, findings, and recommendations must be written in ${languageName}.`,
+    'Do not mix languages.'
+  ].join('\n');
+  return `${prompt}\n${instruction}`;
 }
 
 function isPrivateHost(hostname) {
@@ -140,9 +161,11 @@ async function generateAIReport(context, config = {}) {
   }
 
   const industry = config.industry || context?.metadata?.industry || 'forestry';
+  const language = config.language || context?.metadata?.language || 'en';
   const promptVersion = config.promptVersion || 'v1';
   const { content: promptTemplate, promptVersion: resolvedPromptVersion } = loadPrompt(industry, promptVersion);
-  const prompt = injectContext(promptTemplate, context);
+  const promptWithContext = injectContext(promptTemplate, context);
+  const prompt = injectLanguageInstruction(promptWithContext, language);
 
   const model = (process.env.OPENAI_REPORT_MODEL || 'gpt-4o').trim() || 'gpt-4o';
   if (!ALLOWED_MODELS.has(model)) {

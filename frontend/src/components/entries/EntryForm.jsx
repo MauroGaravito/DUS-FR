@@ -1,6 +1,7 @@
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import { Box, Button, FormControlLabel, MenuItem, Stack, Switch, TextField } from "@mui/material";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const ACCEPTED_FILE_TYPES = {
   audio: "audio/mpeg,audio/mp3,audio/wav,audio/webm",
@@ -8,6 +9,7 @@ const ACCEPTED_FILE_TYPES = {
 };
 
 function EntryForm({ loading, onSubmit }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     type: "text",
     text: "",
@@ -33,7 +35,7 @@ function EntryForm({ loading, onSubmit }) {
       <Stack spacing={2}>
         <TextField
           select
-          label="Entry Type"
+          label={t("entryType")}
           value={form.type}
           onChange={(event) =>
             setForm({
@@ -44,15 +46,15 @@ function EntryForm({ loading, onSubmit }) {
             })
           }
         >
-          <MenuItem value="text">Text</MenuItem>
-          <MenuItem value="audio">Audio</MenuItem>
-          <MenuItem value="photo">Photo</MenuItem>
+          <MenuItem value="text">{t("text")}</MenuItem>
+          <MenuItem value="audio">{t("audio")}</MenuItem>
+          <MenuItem value="photo">{t("photo")}</MenuItem>
         </TextField>
         {isTextType ? (
           <TextField
-            label="Details"
+            label={t("details")}
             multiline
-            minRows={4}
+            minRows={3}
             value={form.text}
             onChange={(event) => setForm((prev) => ({ ...prev, text: event.target.value }))}
             required
@@ -64,7 +66,7 @@ function EntryForm({ loading, onSubmit }) {
             startIcon={<AttachFileIcon />}
             sx={{ justifyContent: "flex-start", minHeight: 54 }}
           >
-            {form.file ? form.file.name : `Select ${form.type} file`}
+            {form.file ? form.file.name : t("selectFile", { type: t(form.type) })}
             <input
               hidden
               type="file"
@@ -83,10 +85,10 @@ function EntryForm({ loading, onSubmit }) {
               onChange={(event) => setForm((prev) => ({ ...prev, isFinding: event.target.checked }))}
             />
           }
-          label="Mark as finding"
+          label={t("markAsFinding")}
         />
         <Button type="submit" variant="contained" disabled={loading}>
-          {loading ? "Saving..." : "Add Entry"}
+          {loading ? t("saving") : t("addEntry")}
         </Button>
       </Stack>
     </Box>

@@ -11,6 +11,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const router = express.Router();
 const DETERMINISTIC_REPORT_TYPE = 'deterministic';
 const AI_REPORT_TYPE = 'ai';
+const ALLOWED_REPORT_TYPES = new Set([DETERMINISTIC_REPORT_TYPE, AI_REPORT_TYPE]);
 
 function buildReportContent(visit, entries) {
   const header = `# Visit Report\nProject: ${visit.projectName}\nLocation: ${visit.location}\nStatus: ${visit.status}\nGenerated: ${new Date().toISOString()}\n`;
@@ -68,14 +69,48 @@ router.post('/visits/:id/generate-report', auth, asyncHandler(async (req, res) =
 }));
 
 router.get('/visits/:id/report', auth, asyncHandler(async (req, res) => {
-  const report = await Report.findOne({ visitId: req.params.id, type: DETERMINISTIC_REPORT_TYPE });
+  const requestedType = typeof req.query?.type === 'string' ? req.query.type.trim().toLowerCase() : '';
+  const type = requestedType || DETERMINISTIC_REPORT_TYPE;
+
+  if (!ALLOWED_REPORT_TYPES.has(type)) {
+    return res.status(400).json({ message: 'Invalid report type' });
+  }
+
+  const report = await Report.findOne({ visitId: req.params.id, type });
   if (!report) {
     return res.status(404).json({ message: 'Report not found' });
   }
   res.json({ report });
 }));
 
-async function buildAIContext(visit, entries, industry) {
+router.patch('/reports/:id', auth, asyncHandler(async (req, res) => {
+  const { content } = req.body || {};
+
+  if (typeof content !== 'string' || !content.trim()) {
+    return res.status(400).json({ message: 'content is required' });
+  }
+
+  const report = await Report.findById(req.params.id);
+  if (!report) {
+    return res.status(404).json({ message: 'Report not found' });
+  }
+
+  if (report.type === AI_REPORT_TYPE) {
+    try {
+      JSON.parse(content);
+    } catch (_error) {
+      return res.status(400).json({ message: 'AI report content must be valid JSON' });
+    }
+  }
+
+  report.content = content;
+  report.generatedAt = new Date();
+  await report.save();
+
+  res.json({ report });
+}));
+
+async function buildAIContext(visit, entries, industry, language) {
   const textEntries = entries
     .filter((entry) => entry.type === 'text')
     .map((entry) => ({ content: entry.text || '', isFinding: !!entry.isFinding }));
@@ -129,7 +164,7 @@ async function buildAIContext(visit, entries, industry) {
     },
     metadata: {
       industry: industry || undefined,
-      language: 'en-AU',
+      language: language || 'en',
       country: 'AU'
     }
   };
@@ -147,6 +182,7 @@ async function transcribeAcceptedAudioEntries(entries) {
     try {
       const result = await requestTranscription(entry);
       entry.transcription = result.text;
+      entry.transcriptionLanguage = result.language || null;
       entry.transcriptionStatus = 'done';
       entry.transcribedAt = result.completedAt || new Date();
       await entry.save();
@@ -174,12 +210,15 @@ router.post('/visits/:id/generate-ai-report', auth, asyncHandler(async (req, res
   }
 
   const requestedIndustry = typeof req.body?.industry === 'string' ? req.body.industry.trim() : '';
+  const requestedLanguage = typeof req.body?.language === 'string' ? req.body.language.trim().toLowerCase() : '';
+  const language = ['en', 'es', 'pt'].includes(requestedLanguage) ? requestedLanguage : 'en';
   await transcribeAcceptedAudioEntries(entries);
-  const context = await buildAIContext(visit, entries, requestedIndustry);
+  const context = await buildAIContext(visit, entries, requestedIndustry, language);
 
   try {
     const aiReport = await generateAIReport(context, {
       industry: context.metadata.industry,
+      language: context.metadata.language,
       promptVersion: 'v1',
       temperature: 0.2
     });

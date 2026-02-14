@@ -1,12 +1,14 @@
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Button, Dialog, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import VisitForm from "../components/visits/VisitForm";
 import VisitList from "../components/visits/VisitList";
 import { createVisit, getVisits } from "../services/api";
 
 function Dashboard() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, showMessage } = useOutletContext();
   const [visits, setVisits] = useState([]);
@@ -21,23 +23,23 @@ function Dashboard() {
         const data = await getVisits();
         setVisits(data.visits || []);
       } catch (err) {
-        showMessage(err.message || "Could not load visits", "error");
+        showMessage(err.message || t("couldNotLoadVisits"), "error");
       } finally {
         setLoading(false);
       }
     }
     loadVisits();
-  }, [showMessage]);
+  }, [showMessage, t]);
 
   const handleCreateVisit = async (payload) => {
     setSavingVisit(true);
     try {
       const data = await createVisit(payload);
       setVisits((prev) => [data.visit, ...prev]);
-      showMessage("Visit created", "success");
+      showMessage(t("visitCreated"), "success");
       setCreateOpen(false);
     } catch (err) {
-      showMessage(err.message || "Could not create visit", "error");
+      showMessage(err.message || t("couldNotCreateVisit"), "error");
     } finally {
       setSavingVisit(false);
     }
@@ -55,13 +57,13 @@ function Dashboard() {
         }}
       >
         <Box>
-          <Typography variant="h5">Dashboard</Typography>
+          <Typography variant="h5">{t("dashboard")}</Typography>
           <Typography variant="body2" color="text.secondary">
-            Welcome {user?.name || "Engineer"}
+            {t("welcomeUser", { name: user?.name || t("engineer") })}
           </Typography>
         </Box>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => setCreateOpen(true)}>
-          Create Visit
+          {t("createVisit")}
         </Button>
       </Box>
 

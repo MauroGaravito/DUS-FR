@@ -1,0 +1,104 @@
+{
+  "login": "Entrar",
+  "dashboard": "Painel",
+  "generateClassic": "Gerar relatório clássico",
+  "generateAI": "Gerar relatório de IA",
+  "saveChanges": "Salvar alterações",
+  "exportPDF": "Exportar PDF",
+  "reportLanguage": "Idioma do relatório",
+  "noReport": "Nenhum relatório gerado ainda",
+  "fieldReport": "Relatório de campo",
+  "engineer": "Engenheiro",
+  "signInToContinue": "Entre para continuar",
+  "email": "E-mail",
+  "password": "Senha",
+  "loginFailed": "Falha no login",
+  "welcomeUser": "Bem-vindo {{name}}",
+  "createVisit": "Criar visita",
+  "visitCreated": "Visita criada",
+  "couldNotLoadVisits": "Não foi possível carregar as visitas",
+  "couldNotCreateVisit": "Não foi possível criar a visita",
+  "projectName": "Nome do projeto",
+  "location": "Localização",
+  "cancel": "Cancelar",
+  "saving": "Salvando...",
+  "saveVisit": "Salvar visita",
+  "noVisitsCreated": "Nenhuma visita criada ainda.",
+  "openVisit": "Abrir visita",
+  "visitDetail": "Detalhe da visita",
+  "report": "Relatório",
+  "entries": "Entradas",
+  "addEntry": "Adicionar entrada",
+  "entryType": "Tipo de entrada",
+  "text": "Texto",
+  "audio": "Áudio",
+  "photo": "Foto",
+  "details": "Detalhes",
+  "selectFile": "Selecionar arquivo {{type}}",
+  "markAsFinding": "Marcar como achado",
+  "entryAdded": "Entrada adicionada",
+  "entryUpdated": "Entrada atualizada",
+  "updateFailed": "Falha ao atualizar",
+  "accept": "Aceitar",
+  "reject": "Rejeitar",
+  "transcribe": "Transcrever",
+  "transcribing": "Transcrevendo...",
+  "transcriptionStatus": "Status da transcrição: {{status}}",
+  "openFile": "Abrir arquivo",
+  "finding": "Achado",
+  "observations": "Observações",
+  "findings": "Achados",
+  "executiveSummary": "Resumo executivo",
+  "limitations": "Limitações",
+  "conclusion": "Conclusão",
+  "generated": "Gerado em: {{date}}",
+  "typeLabel": "Tipo: {{type}}",
+  "classicType": "Clássico",
+  "aiType": "IA",
+  "processing": "Processando...",
+  "exporting": "Exportando...",
+  "acceptedEntriesRequired": "Entradas aceitas são necessárias para gerar relatórios clássico ou IA.",
+  "acceptedEntriesRequiredLegacy": "Entradas aceitas são necessárias antes de gerar relatórios.",
+  "generateWorkspaceHint": "Gere um relatório clássico ou IA para iniciar este espaço de documento.",
+  "aiReportSummary": "Resumo do relatório de IA",
+  "noSummaryAvailable": "Nenhum resumo disponível.",
+  "reportWorkspaceLoadError": "Não foi possível carregar o espaço de relatórios",
+  "reportGeneratedClassic": "Relatório clássico gerado",
+  "reportGeneratedAI": "Relatório de IA gerado",
+  "saveAIChangesSuccess": "Alterações do relatório de IA salvas",
+  "saveAIChangesError": "Não foi possível salvar as alterações do relatório",
+  "exportPdfSuccess": "PDF exportado",
+  "exportPdfError": "Não foi possível exportar o PDF",
+  "reportContentNotReady": "O conteúdo do relatório não está pronto para exportação",
+  "regenerateReportTitle": "Regenerar relatório?",
+  "regenerateReportMessage": "Regenerar substituirá o conteúdo atual do relatório. Alterações não salvas serão perdidas.",
+  "continue": "Continuar",
+  "language": "Idioma",
+  "english": "Inglês",
+  "spanish": "Espanhol",
+  "portuguese": "Português",
+  "reportSaved": "Relatório salvo"
+  ,"noEntriesRegistered": "Nenhuma entrada registrada ainda."
+  ,"observation": "Observação"
+  ,"addObservation": "Adicionar observação"
+  ,"title": "Título"
+  ,"severity": "Severidade"
+  ,"low": "Baixa"
+  ,"medium": "Média"
+  ,"high": "Alta"
+  ,"evidence": "Evidência"
+  ,"recommendation": "Recomendação"
+  ,"addFinding": "Adicionar achado"
+  ,"locationNotAvailable": "Localização indisponível"
+  ,"fetchReportError": "Não foi possível buscar o relatório"
+  ,"loadVisitError": "Não foi possível carregar a visita"
+  ,"addEntryError": "Não foi possível adicionar a entrada"
+  ,"updateEntryError": "Não foi possível atualizar a entrada"
+  ,"transcriptionCompleted": "Transcrição concluída"
+  ,"transcriptionFailed": "Falha na transcrição"
+  ,"generateReportError": "Não foi possível gerar o relatório"
+  ,"generateAIError": "Não foi possível gerar o relatório de IA"
+  ,"visitNotFound": "Visita não encontrada."
+  ,"status": "Status"
+  ,"untitledProject": "Projeto sem título"
+}

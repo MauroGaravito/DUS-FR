@@ -1,7 +1,10 @@
 import { Box, CircularProgress, Grid, Typography } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import VisitCard from "./VisitCard";
 
 function VisitList({ visits, loading, onOpenVisit }) {
+  const { t } = useTranslation();
+
   if (loading) {
     return (
       <Box sx={{ py: 4, display: "flex", justifyContent: "center" }}>
@@ -13,7 +16,7 @@ function VisitList({ visits, loading, onOpenVisit }) {
   if (!visits.length) {
     return (
       <Box sx={{ py: 4 }}>
-        <Typography color="text.secondary">No visits created yet.</Typography>
+        <Typography color="text.secondary">{t("noVisitsCreated")}</Typography>
       </Box>
     );
   }
