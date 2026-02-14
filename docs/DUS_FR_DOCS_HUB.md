@@ -6,7 +6,13 @@ This is the single entry point for project documentation.
 
 All central docs use the `DUS_FR_` prefix and unique names to avoid ambiguity across repos.
 
-## Central Documents
+## Start Here
+
+- If you are deploying: `docs/DUS_FR_DEPLOYMENT_GUIDE.md`
+- If you are integrating an API client: `docs/DUS_FR_API_CONTRACT.md`
+- If you are debugging prod issues: `docs/DUS_FR_TROUBLESHOOTING.md`
+
+## Central Documents (Source Of Truth)
 
 - `docs/DUS_FR_API_CONTRACT.md` - endpoint contracts, request/response formats, validation rules.
 - `docs/DUS_FR_SYSTEM_ARCHITECTURE.md` - system components, data flow, lifecycle.
@@ -14,6 +20,8 @@ All central docs use the `DUS_FR_` prefix and unique names to avoid ambiguity ac
 - `docs/DUS_FR_FRONTEND_REFERENCE.md` - frontend structure, routing, UI modules, UX behavior.
 - `docs/DUS_FR_DEVELOPMENT_NOTES.md` - design decisions, known limitations, next phases.
 - `docs/DUS_FR_FORESTRY_REPORT_TEMPLATE.md` - forestry AI report markdown template reference.
+- `docs/DUS_FR_DEPLOYMENT_GUIDE.md` - Docker Compose + Dockploy + Caddy deployment notes (frontend served by Nginx).
+- `docs/DUS_FR_TROUBLESHOOTING.md` - known issues and how to verify/fix them quickly.
 
 ## Runtime Stack
 
@@ -24,12 +32,12 @@ All central docs use the `DUS_FR_` prefix and unique names to avoid ambiguity ac
 - AI: OpenAI for audio transcription and structured AI report generation
 - Orchestration: Docker Compose
 
-## Quick Start
+## Local Quick Start (Docker)
 
 1. Ensure Docker is running.
 2. Run `docker compose up --build` from repo root.
 3. Access services:
-- Frontend: served via your reverse proxy (Caddy) from the `dus-fr-frontend` container on internal port `80`
+- Frontend: served by Nginx on internal `:80` and intended to be accessed through Caddy (see deployment guide)
 - Backend: `http://localhost:4000`
 - MongoDB: `localhost:27017`
 - MinIO: `http://localhost:9000`

@@ -1,6 +1,19 @@
 # DUS Field Report API Contract
 
-Base URL: `http://localhost:4000`
+## Base URLs
+
+Direct (local / internal):
+
+- `http://localhost:4000`
+
+Behind Caddy (recommended production pattern):
+
+- Use `/api` as the public API prefix.
+- Example: `https://field-report.downundersolutions.com/api`
+
+Note:
+
+- When proxied through Caddy, requests are expected to hit `/api/*` and Caddy strips the `/api` prefix before forwarding to the backend.
 
 Authentication:
 

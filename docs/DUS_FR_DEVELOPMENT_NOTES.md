@@ -5,6 +5,7 @@
 - Backend API contracts are stable and unchanged.
 - Frontend was refactored from single-page flow to routed modular architecture.
 - Documentation was renamed with unique `DUS_FR_` prefixes and centralized under `docs/`.
+- Frontend production serving uses Nginx (static `dist/`) behind Caddy reverse proxy.
 
 ## Major Design Decisions
 

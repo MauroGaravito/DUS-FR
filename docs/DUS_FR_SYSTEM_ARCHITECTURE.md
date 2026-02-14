@@ -64,5 +64,15 @@ Docker Compose services:
 - `minio` on `:9000`
 - MinIO Console on `:9001`
 
-Internal service DNS uses compose names (`backend`, `mongo`, `minio`).
+Internal service DNS (inside compose) uses compose names (`backend`, `mongo`, `minio`).
+
+Production routing (recommended):
+
+- Caddy is the public entrypoint.
+- `/api/*` is reverse-proxied to `dus-fr-backend:4000` with `/api` stripped.
+- All other paths are reverse-proxied to `dus-fr-frontend:80` (SPA).
+
+Networking:
+
+- `shared_caddy_net` is an external network shared across stacks so Caddy can reach app containers by DNS alias.
 

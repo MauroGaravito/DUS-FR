@@ -62,6 +62,16 @@ All network calls are centralized in:
 
 This preserves separation of concerns and keeps JSX components focused on UI state.
 
+### API Base URL
+
+The frontend reads the base URL from `import.meta.env.VITE_API_URL`.
+
+Recommended production value:
+
+- `VITE_API_URL=/api`
+
+This matches the recommended Caddy routing where `/api/*` is proxied to the backend and the prefix is stripped.
+
 ## UX Patterns Implemented
 
 - Snackbar alerts for success/error feedback.
@@ -69,6 +79,11 @@ This preserves separation of concerns and keeps JSX components focused on UI sta
 - Disabled action buttons during processing.
 - Responsive layouts with mobile-first sizing.
 - Large action targets for field usability.
+
+## Media Capture Notes (Mobile)
+
+- Photo upload uses `accept="image/*"` and a camera capture option (`capture="environment"`) so mobile browsers can offer Camera + Gallery choices when available.
+- Audio upload remains a file-based flow.
 
 ## Reporting UI Behavior
 
