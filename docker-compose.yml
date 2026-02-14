@@ -31,7 +31,10 @@ services:
       - minio
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=${VITE_API_URL:-http://backend:4000}
     container_name: dus-fr-frontend
     environment:
       - VITE_API_URL=${VITE_API_URL:-http://backend:4000}
