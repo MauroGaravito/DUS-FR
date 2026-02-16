@@ -64,7 +64,8 @@ async function requestTranscription(entry) {
     form.append('model', model);
     form.append('file', new Blob([buffer], { type: contentType || 'audio/mpeg' }), 'audio.mp3');
     form.append('prompt', PROMPT);
-    form.append('response_format', 'verbose_json');
+    // `gpt-4o-mini-transcribe*` rejects `verbose_json` (supports `json` or `text`).
+    form.append('response_format', 'json');
 
     const resp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
