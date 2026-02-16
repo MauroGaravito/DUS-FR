@@ -203,10 +203,6 @@ async function generateAIReport(context, config = {}) {
   const client = new OpenAI({ apiKey });
 
   const messages = [{ role: 'system', content: prompt }];
-  const imageMessage = buildImageMessage(context?.entries?.images);
-  if (imageMessage) {
-    messages.push(imageMessage);
-  }
 
   const response = await client.chat.completions.create({
     model,

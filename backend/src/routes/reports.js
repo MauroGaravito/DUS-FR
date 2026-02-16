@@ -13,38 +13,98 @@ const DETERMINISTIC_REPORT_TYPE = 'deterministic';
 const AI_REPORT_TYPE = 'ai';
 const ALLOWED_REPORT_TYPES = new Set([DETERMINISTIC_REPORT_TYPE, AI_REPORT_TYPE]);
 
-function buildReportContent(visit, entries) {
-  const header = `# Visit Report\nProject: ${visit.projectName}\nLocation: ${visit.location}\nStatus: ${visit.status}\nGenerated: ${new Date().toISOString()}\n`;
+function formatDate(value) {
+  if (!value) return 'N/A';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'N/A';
+  return date.toISOString();
+}
 
-  const acceptedTexts = entries.filter((e) => e.type === 'text');
-  const observationsList = acceptedTexts.filter((e) => !e.isFinding);
-  const findingsList = acceptedTexts.filter((e) => e.isFinding);
+function summarizeEntry(entry) {
+  if (!entry) return '';
+  if (entry.type === 'text') return String(entry.text || '').trim();
+  if (entry.type === 'audio') return String(entry.transcription || entry.text || '').trim();
+  return '';
+}
+
+function buildReportContent(visit, entries, options = {}) {
+  const generatedAt = options.generatedAt || new Date();
+  const preparedBy = options.preparedBy || 'Field Engineer';
+  const reportId = String(visit._id || generatedAt.getTime());
+
+  const analyzableEntries = entries.filter((entry) => entry.type === 'text' || entry.type === 'audio');
+  const observationsList = analyzableEntries.filter((entry) => !entry.isFinding);
+  const findingsList = analyzableEntries.filter((entry) => entry.isFinding);
+  const audioEntries = entries.filter((entry) => entry.type === 'audio');
+  const photoEntries = entries.filter((entry) => entry.type === 'photo');
+
+  const objective =
+    'Provide a professional field summary based on accepted text notes and audio transcriptions, with media attached as annex evidence.';
 
   const observations =
-    observationsList.map((e) => `- ${e.text || e.transcription || 'No content'}`).join('\n') ||
-    'No observations recorded.';
+    observationsList
+      .map((entry) => summarizeEntry(entry))
+      .filter(Boolean)
+      .map((text) => `- ${text}`)
+      .join('\n') || 'No observations recorded.';
 
   const findings =
-    findingsList.map((e) => `- ${e.text || e.transcription || 'Finding noted'}`).join('\n') ||
-    'No findings flagged.';
+    findingsList
+      .map((entry) => summarizeEntry(entry))
+      .filter(Boolean)
+      .map((text) => `- ${text}`)
+      .join('\n') || 'No findings flagged.';
 
-  const annexEntries = entries.filter((e) => e.type === 'audio' || e.type === 'photo');
-  const annexLines = annexEntries.map((e) => `- ${e.type.toUpperCase()}: ${e.fileUrl || 'N/A'}`);
-  const annexes = annexLines.length > 0 ? annexLines.join('\n') : 'No annexes recorded.';
+  const transcriptionAnalysis =
+    audioEntries
+      .map((entry, index) => {
+        const status = entry.transcriptionStatus || 'idle';
+        const body = entry.transcription && entry.transcription.trim() ? entry.transcription.trim() : 'Transcription unavailable.';
+        return [
+          `### Audio ${index + 1}`,
+          `- Status: ${status}`,
+          `- Recorded At: ${formatDate(entry.createdAt)}`,
+          `- Summary: ${body}`
+        ].join('\n');
+      })
+      .join('\n\n') || 'No accepted audio entries were included in this report.';
 
-  const objective = 'Site visit summary generated from accepted entries.';
+  const imageAnnexes =
+    photoEntries
+      .map((entry, index) => {
+        const note = entry.text && entry.text.trim() ? entry.text.trim() : 'No description provided.';
+        return `- Image ${index + 1}: ${entry.fileUrl || 'N/A'} (note: ${note})`;
+      })
+      .join('\n') || 'No image annexes recorded.';
 
   return [
-    header,
+    '# Field Inspection Report',
+    `- Report ID: ${reportId}`,
+    `- Project Name: ${visit.projectName || 'N/A'}`,
+    `- Location: ${visit.location || 'N/A'}`,
+    `- Visit Date: ${formatDate(visit.createdAt)}`,
+    `- Report Date: ${formatDate(generatedAt)}`,
+    `- Prepared By: ${preparedBy}`,
+    '',
     '## Objective',
     objective,
-    '## Observations',
+    '',
+    '## Scope and Method',
+    '- Sources analyzed: accepted text entries and accepted audio transcriptions.',
+    '- Images are attached as annexes and are not analyzed by AI in this version.',
+    '',
+    '## Consolidated Observations',
     observations,
-    '## Findings',
+    '',
+    '## Findings Requiring Action',
     findings,
-    '## Annexes',
-    annexes
-  ].join('\n\n');
+    '',
+    '## Audio Transcription Analysis',
+    transcriptionAnalysis,
+    '',
+    '## Annexes - Images',
+    imageAnnexes
+  ].join('\n');
 }
 
 router.post('/visits/:id/generate-report', auth, asyncHandler(async (req, res) => {
@@ -57,11 +117,15 @@ router.post('/visits/:id/generate-report', auth, asyncHandler(async (req, res) =
   if (!entries.length) {
     return res.status(400).json({ message: 'Cannot generate report: no accepted entries' });
   }
-  const content = buildReportContent(visit, entries);
+  const generatedAt = new Date();
+  const content = buildReportContent(visit, entries, {
+    generatedAt,
+    preparedBy: req.user?.name || req.user?.email || 'Field Engineer'
+  });
 
   const report = await Report.findOneAndUpdate(
     { visitId: visit._id, type: DETERMINISTIC_REPORT_TYPE },
-    { content, type: DETERMINISTIC_REPORT_TYPE, generatedAt: new Date() },
+    { content, type: DETERMINISTIC_REPORT_TYPE, generatedAt },
     { new: true, upsert: true, setDefaultsOnInsert: true }
   );
 

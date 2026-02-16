@@ -11,6 +11,8 @@ Rules:
 - Use a professional, neutral, technical tone.
 - Use Australian English.
 - Focus on forestry-relevant topics: safety in bush/forest environments, environmental compliance, access roads and tracks, machinery and vehicles, vegetation management, erosion, drainage, and ground conditions, hazards and follow-up actions.
+- Base the analysis on text entries and audio transcriptions only.
+- Treat image entries as annex references only; do not infer visual details from images.
 - Output MUST be valid JSON and MUST match the required schema.
 - Output JSON only. Do not include markdown or prose outside the JSON.
 
