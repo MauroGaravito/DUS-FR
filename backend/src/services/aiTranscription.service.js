@@ -27,6 +27,27 @@ function normalizeLanguage(value) {
   return null;
 }
 
+function extractFilename(objectName) {
+  const fallback = 'audio.webm';
+  if (!objectName || typeof objectName !== 'string') return fallback;
+  const parts = objectName.split('/').filter(Boolean);
+  const candidate = parts[parts.length - 1] || fallback;
+  return candidate.includes('.') ? candidate : `${candidate}.webm`;
+}
+
+function normalizeTranscriptionMime(contentType, filename) {
+  const raw = String(contentType || '').trim().toLowerCase();
+  if (raw === 'audio/x-m4a' || raw === 'application/mp4') return 'audio/mp4';
+  if (raw) return raw;
+
+  const lower = String(filename || '').toLowerCase();
+  if (lower.endsWith('.m4a') || lower.endsWith('.mp4')) return 'audio/mp4';
+  if (lower.endsWith('.aac')) return 'audio/aac';
+  if (lower.endsWith('.mp3')) return 'audio/mpeg';
+  if (lower.endsWith('.wav')) return 'audio/wav';
+  return 'audio/webm';
+}
+
 async function readObjectAsBuffer(objectName) {
   const stat = await client.statObject(bucket, objectName);
   const stream = await client.getObject(bucket, objectName);
@@ -50,19 +71,22 @@ async function requestTranscription(entry) {
   if (!objectName) {
     throw new Error('Cannot derive media object for transcription');
   }
+  const filename = extractFilename(objectName);
 
   const { buffer, contentType } = await readObjectAsBuffer(objectName);
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error('OPENAI_API_KEY is not configured');
   }
-  const model = (process.env.OPENAI_TRANSCRIBE_MODEL || 'gpt-4o-mini-transcribe').trim() || 'gpt-4o-mini-transcribe';
+  const model =
+    (process.env.OPENAI_TRANSCRIBE_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini-transcribe').trim() ||
+    'gpt-4o-mini-transcribe';
 
   try {
     // Use native fetch/FormData to avoid SDK path issues
     const form = new FormData();
     form.append('model', model);
-    form.append('file', new Blob([buffer], { type: contentType || 'audio/mpeg' }), 'audio.mp3');
+    form.append('file', new Blob([buffer], { type: normalizeTranscriptionMime(contentType, filename) }), filename);
     form.append('prompt', PROMPT);
     // `gpt-4o-mini-transcribe*` rejects `verbose_json` (supports `json` or `text`).
     form.append('response_format', 'json');
