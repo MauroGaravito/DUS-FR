@@ -73,7 +73,16 @@ function buildReportContent(visit, entries, options = {}) {
     photoEntries
       .map((entry, index) => {
         const note = entry.text && entry.text.trim() ? entry.text.trim() : 'No description provided.';
-        return `- Image ${index + 1}: ${entry.fileUrl || 'N/A'} (note: ${note})`;
+        const imageUrl = entry.fileUrl || '';
+        if (!imageUrl) {
+          return `### Image ${index + 1}\n- URL: N/A\n- Note: ${note}`;
+        }
+        return [
+          `### Image ${index + 1}`,
+          `![Image ${index + 1}](${imageUrl})`,
+          `- URL: ${imageUrl}`,
+          `- Note: ${note}`
+        ].join('\n');
       })
       .join('\n') || 'No image annexes recorded.';
 
