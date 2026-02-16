@@ -37,15 +37,83 @@ function extractFilename(objectName) {
 
 function normalizeTranscriptionMime(contentType, filename) {
   const raw = String(contentType || '').trim().toLowerCase();
-  if (raw === 'audio/x-m4a' || raw === 'application/mp4') return 'audio/mp4';
+  if (raw === 'audio/x-m4a') return 'audio/m4a';
+  if (raw === 'application/mp4') return 'audio/mp4';
   if (raw) return raw;
 
   const lower = String(filename || '').toLowerCase();
-  if (lower.endsWith('.m4a') || lower.endsWith('.mp4')) return 'audio/mp4';
+  if (lower.endsWith('.m4a')) return 'audio/m4a';
+  if (lower.endsWith('.mp4')) return 'audio/mp4';
   if (lower.endsWith('.aac')) return 'audio/aac';
   if (lower.endsWith('.mp3')) return 'audio/mpeg';
   if (lower.endsWith('.wav')) return 'audio/wav';
   return 'audio/webm';
+}
+
+function listUnique(values) {
+  return Array.from(new Set(values.filter(Boolean)));
+}
+
+function buildMimeCandidates(contentType, filename) {
+  const lower = String(filename || '').toLowerCase();
+  const normalized = normalizeTranscriptionMime(contentType, filename);
+  const candidates = [normalized];
+
+  if (lower.endsWith('.m4a')) {
+    candidates.push('audio/m4a', 'audio/mp4', 'application/octet-stream');
+  } else if (lower.endsWith('.mp4')) {
+    candidates.push('audio/mp4', 'video/mp4', 'application/octet-stream');
+  } else if (lower.endsWith('.aac')) {
+    candidates.push('audio/aac', 'audio/mp4', 'application/octet-stream');
+  } else {
+    candidates.push('application/octet-stream');
+  }
+
+  return listUnique(candidates);
+}
+
+function buildModelCandidates(baseModel) {
+  return listUnique([baseModel, 'gpt-4o-mini-transcribe', 'whisper-1']);
+}
+
+async function sendTranscriptionRequest({
+  apiKey,
+  model,
+  buffer,
+  mime,
+  filename,
+  timeoutMs
+}) {
+  const form = new FormData();
+  form.append('model', model);
+  form.append('file', new Blob([buffer], { type: mime }), filename);
+  form.append('prompt', PROMPT);
+  form.append('response_format', 'json');
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const resp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: form,
+      signal: controller.signal
+    });
+
+    const raw = await resp.text();
+    if (!resp.ok) {
+      const error = new Error(`OpenAI transcription failed: ${resp.status} ${resp.statusText} - ${raw}`);
+      error.status = resp.status;
+      error.body = raw;
+      throw error;
+    }
+
+    return raw;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function readObjectAsBuffer(objectName) {
@@ -81,30 +149,51 @@ async function requestTranscription(entry) {
   const model =
     (process.env.OPENAI_TRANSCRIBE_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini-transcribe').trim() ||
     'gpt-4o-mini-transcribe';
+  const timeoutMs = Math.max(parseInt(process.env.OPENAI_TIMEOUT_MS || '60000', 10) || 60000, 5000);
 
   try {
-    // Use native fetch/FormData to avoid SDK path issues
-    const form = new FormData();
-    form.append('model', model);
-    form.append('file', new Blob([buffer], { type: normalizeTranscriptionMime(contentType, filename) }), filename);
-    form.append('prompt', PROMPT);
-    // `gpt-4o-mini-transcribe*` rejects `verbose_json` (supports `json` or `text`).
-    form.append('response_format', 'json');
+    const mimeCandidates = buildMimeCandidates(contentType, filename);
+    const modelCandidates = buildModelCandidates(model);
+    let raw = null;
+    let lastError = null;
 
-    const resp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`
-      },
-      body: form
-    });
-
-    if (!resp.ok) {
-      const errorBody = await resp.text();
-      throw new Error(`OpenAI transcription failed: ${resp.status} ${resp.statusText} - ${errorBody}`);
+    for (const candidateModel of modelCandidates) {
+      for (const candidateMime of mimeCandidates) {
+        try {
+          raw = await sendTranscriptionRequest({
+            apiKey,
+            model: candidateModel,
+            buffer,
+            mime: candidateMime,
+            filename,
+            timeoutMs
+          });
+          if (candidateModel !== model || candidateMime !== mimeCandidates[0]) {
+            console.warn(
+              `OpenAI transcription succeeded with fallback model=${candidateModel} mime=${candidateMime} filename=${filename}`
+            );
+          }
+          break;
+        } catch (err) {
+          lastError = err;
+          const isInvalidAudio =
+            err.status === 400 && /"param"\s*:\s*"file"/.test(String(err.body || ''));
+          const isTimeout = String(err?.name || '').toLowerCase() === 'aborterror';
+          if (!isInvalidAudio && !isTimeout) {
+            throw err;
+          }
+          console.warn(
+            `OpenAI transcription retry model=${candidateModel} mime=${candidateMime} filename=${filename}: ${err.message}`
+          );
+        }
+      }
+      if (raw) break;
     }
 
-    const raw = await resp.text();
+    if (!raw) {
+      throw lastError || new Error('OpenAI transcription failed for all mime/model candidates');
+    }
+
     let parsed = null;
     try {
       parsed = JSON.parse(raw);
@@ -122,7 +211,7 @@ async function requestTranscription(entry) {
     return {
       text: text.trim(),
       completedAt: new Date(),
-      model,
+      model: parsed?.model || model,
       language: detectedLanguage
     };
   } catch (err) {
