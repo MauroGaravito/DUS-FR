@@ -1,3 +1,8 @@
+const fs = require('fs/promises');
+const os = require('os');
+const path = require('path');
+const crypto = require('crypto');
+const { spawn } = require('child_process');
 const { client, bucket, extractObjectName } = require('../utils/minio');
 
 const PROMPT = `
@@ -74,6 +79,113 @@ function buildMimeCandidates(contentType, filename) {
 
 function buildModelCandidates(baseModel) {
   return listUnique([baseModel, 'gpt-4o-mini-transcribe', 'whisper-1']);
+}
+
+function isRetryableTranscriptionError(err) {
+  const body = String(err?.body || err?.message || '');
+  const isTimeout = String(err?.name || '').toLowerCase() === 'aborterror';
+  const isInvalidFileParam = /"param"\s*:\s*"file"/i.test(body);
+  const saysUnsupported = /audio file might be corrupted or unsupported/i.test(body);
+  const saysInvalidFormat = /invalid file format/i.test(body);
+  return isTimeout || (err?.status === 400 && (isInvalidFileParam || saysUnsupported || saysInvalidFormat));
+}
+
+function toWavFilename(filename) {
+  const ext = path.extname(filename || '');
+  if (!ext) return `${filename || 'audio'}.wav`;
+  return `${filename.slice(0, -ext.length)}.wav`;
+}
+
+async function transcodeToWav(buffer, filename) {
+  const tmpDir = os.tmpdir();
+  const token = crypto.randomUUID();
+  const sourceExt = path.extname(filename || '').toLowerCase() || '.bin';
+  const inputPath = path.join(tmpDir, `dus-fr-audio-${token}${sourceExt}`);
+  const outputPath = path.join(tmpDir, `dus-fr-audio-${token}.wav`);
+
+  try {
+    await fs.writeFile(inputPath, buffer);
+    await new Promise((resolve, reject) => {
+      const ffmpeg = spawn('ffmpeg', [
+        '-y',
+        '-hide_banner',
+        '-loglevel',
+        'error',
+        '-i',
+        inputPath,
+        '-ac',
+        '1',
+        '-ar',
+        '16000',
+        '-f',
+        'wav',
+        outputPath
+      ]);
+
+      let stderr = '';
+      ffmpeg.stderr.on('data', (chunk) => {
+        stderr += chunk.toString();
+      });
+      ffmpeg.on('error', (err) => reject(err));
+      ffmpeg.on('close', (code) => {
+        if (code === 0) return resolve();
+        return reject(new Error(stderr || `ffmpeg exited with code ${code}`));
+      });
+    });
+
+    const wavBuffer = await fs.readFile(outputPath);
+    return { buffer: wavBuffer, filename: toWavFilename(filename), mime: 'audio/wav' };
+  } catch (error) {
+    console.warn(`Audio transcode to wav failed for ${filename}: ${error.message}`);
+    return null;
+  } finally {
+    await Promise.allSettled([fs.unlink(inputPath), fs.unlink(outputPath)]);
+  }
+}
+
+async function attemptTranscription({
+  apiKey,
+  buffer,
+  filename,
+  mimeCandidates,
+  modelCandidates,
+  timeoutMs
+}) {
+  let raw = null;
+  let lastError = null;
+  let usedModel = modelCandidates[0];
+
+  for (const candidateModel of modelCandidates) {
+    for (const candidateMime of mimeCandidates) {
+      try {
+        raw = await sendTranscriptionRequest({
+          apiKey,
+          model: candidateModel,
+          buffer,
+          mime: candidateMime,
+          filename,
+          timeoutMs
+        });
+        usedModel = candidateModel;
+        if (candidateModel !== modelCandidates[0] || candidateMime !== mimeCandidates[0]) {
+          console.warn(
+            `OpenAI transcription succeeded with fallback model=${candidateModel} mime=${candidateMime} filename=${filename}`
+          );
+        }
+        return { raw, usedModel };
+      } catch (err) {
+        lastError = err;
+        if (!isRetryableTranscriptionError(err)) {
+          throw err;
+        }
+        console.warn(
+          `OpenAI transcription retry model=${candidateModel} mime=${candidateMime} filename=${filename}: ${err.message}`
+        );
+      }
+    }
+  }
+
+  throw lastError || new Error('OpenAI transcription failed for all mime/model candidates');
 }
 
 async function sendTranscriptionRequest({
@@ -154,46 +266,39 @@ async function requestTranscription(entry) {
   try {
     const mimeCandidates = buildMimeCandidates(contentType, filename);
     const modelCandidates = buildModelCandidates(model);
-    let raw = null;
-    let lastError = null;
+    let result = null;
 
-    for (const candidateModel of modelCandidates) {
-      for (const candidateMime of mimeCandidates) {
-        try {
-          raw = await sendTranscriptionRequest({
-            apiKey,
-            model: candidateModel,
-            buffer,
-            mime: candidateMime,
-            filename,
-            timeoutMs
-          });
-          if (candidateModel !== model || candidateMime !== mimeCandidates[0]) {
-            console.warn(
-              `OpenAI transcription succeeded with fallback model=${candidateModel} mime=${candidateMime} filename=${filename}`
-            );
-          }
-          break;
-        } catch (err) {
-          lastError = err;
-          const isInvalidAudio =
-            err.status === 400 && /"param"\s*:\s*"file"/.test(String(err.body || ''));
-          const isTimeout = String(err?.name || '').toLowerCase() === 'aborterror';
-          if (!isInvalidAudio && !isTimeout) {
-            throw err;
-          }
-          console.warn(
-            `OpenAI transcription retry model=${candidateModel} mime=${candidateMime} filename=${filename}: ${err.message}`
-          );
-        }
+    try {
+      result = await attemptTranscription({
+        apiKey,
+        buffer,
+        filename,
+        mimeCandidates,
+        modelCandidates,
+        timeoutMs
+      });
+    } catch (err) {
+      if (!isRetryableTranscriptionError(err)) {
+        throw err;
       }
-      if (raw) break;
+
+      const transcoded = await transcodeToWav(buffer, filename);
+      if (!transcoded) {
+        throw err;
+      }
+
+      console.warn(`Retrying transcription with transcoded wav for ${filename}`);
+      result = await attemptTranscription({
+        apiKey,
+        buffer: transcoded.buffer,
+        filename: transcoded.filename,
+        mimeCandidates: [transcoded.mime, 'application/octet-stream'],
+        modelCandidates,
+        timeoutMs
+      });
     }
 
-    if (!raw) {
-      throw lastError || new Error('OpenAI transcription failed for all mime/model candidates');
-    }
-
+    const { raw, usedModel } = result;
     let parsed = null;
     try {
       parsed = JSON.parse(raw);
@@ -211,7 +316,7 @@ async function requestTranscription(entry) {
     return {
       text: text.trim(),
       completedAt: new Date(),
-      model: parsed?.model || model,
+      model: parsed?.model || usedModel || model,
       language: detectedLanguage
     };
   } catch (err) {
