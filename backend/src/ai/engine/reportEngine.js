@@ -11,6 +11,34 @@ const LANGUAGE_NAME_MAP = {
   pt: 'Portuguese'
 };
 
+function summarizeOpenAIResponse(response) {
+  const choice = response?.choices?.[0] || null;
+  const message = choice?.message || null;
+  const content = message?.content;
+  const contentType = Array.isArray(content) ? 'array' : typeof content;
+  const contentPreview =
+    typeof content === 'string'
+      ? content.slice(0, 200)
+      : Array.isArray(content)
+        ? JSON.stringify(content.slice(0, 2)).slice(0, 200)
+        : null;
+
+  return {
+    id: response?.id || null,
+    model: response?.model || null,
+    created: response?.created || null,
+    usage: response?.usage || null,
+    choicesCount: Array.isArray(response?.choices) ? response.choices.length : 0,
+    finishReason: choice?.finish_reason || null,
+    messageRole: message?.role || null,
+    contentType,
+    hasRefusal: Boolean(message?.refusal),
+    refusalPreview:
+      typeof message?.refusal === 'string' ? message.refusal.slice(0, 200) : null,
+    contentPreview
+  };
+}
+
 function loadPrompt(industry, version) {
   const safeIndustry = (industry || 'construction').trim().toLowerCase();
   const safeVersion = (version || 'v1').trim().toLowerCase();
@@ -189,6 +217,10 @@ async function generateAIReport(context, config = {}) {
 
   const rawContent = response?.choices?.[0]?.message?.content;
   if (!rawContent || typeof rawContent !== 'string') {
+    console.error(
+      'OpenAI report empty/unexpected response payload',
+      summarizeOpenAIResponse(response)
+    );
     throw new Error('OpenAI returned empty response');
   }
 
