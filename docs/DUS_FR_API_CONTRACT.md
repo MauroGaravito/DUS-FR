@@ -111,7 +111,7 @@ Entry lifecycle:
 Validation:
 
 - Text minimum length: 5 chars.
-- Audio MIME: `audio/mpeg`, `audio/mp3`, `audio/wav`, `audio/webm`.
+- Audio MIME: `audio/mpeg`, `audio/mp3`, `audio/wav`, `audio/webm`, `audio/mp4`, `audio/m4a`, `audio/aac`.
 - Audio max size: 10 MB.
 - Photo MIME: `image/jpeg`, `image/png`.
 - Photo max size: 5 MB.

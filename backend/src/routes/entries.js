@@ -10,7 +10,15 @@ const { requestTranscription } = require('../services/aiTranscription.service');
 const router = express.Router();
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
-const ALLOWED_AUDIO_MIME = new Set(['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/webm']);
+const ALLOWED_AUDIO_MIME = new Set([
+  'audio/mpeg',
+  'audio/mp3',
+  'audio/wav',
+  'audio/webm',
+  'audio/mp4',
+  'audio/m4a',
+  'audio/aac'
+]);
 const ALLOWED_PHOTO_MIME = new Set(['image/jpeg', 'image/png']);
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_AUDIO_BYTES } });
 
@@ -72,7 +80,7 @@ router.post('/visits/:id/entries', auth, runUpload, asyncHandler(async (req, res
 
     if (type === 'audio') {
       if (!ALLOWED_AUDIO_MIME.has(req.file.mimetype)) {
-        return res.status(400).json({ message: 'Invalid audio type. Allowed: audio/mpeg, audio/mp3, audio/wav, audio/webm' });
+        return res.status(400).json({ message: `Invalid audio type. Allowed: ${Array.from(ALLOWED_AUDIO_MIME).join(', ')}` });
       }
       if (req.file.size > MAX_AUDIO_BYTES) {
         return res.status(400).json({ message: 'Audio exceeds 10 MB limit' });
