@@ -17,10 +17,27 @@ const ALLOWED_AUDIO_MIME = new Set([
   'audio/webm',
   'audio/mp4',
   'audio/m4a',
-  'audio/aac'
+  'audio/aac',
+  'audio/x-m4a',
+  'audio/mp4a-latm',
+  'video/mp4',
+  'application/mp4'
 ]);
+const ALLOWED_AUDIO_EXT = new Set(['.mp3', '.wav', '.webm', '.mp4', '.m4a', '.aac']);
 const ALLOWED_PHOTO_MIME = new Set(['image/jpeg', 'image/png']);
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_AUDIO_BYTES } });
+
+function hasAllowedAudioExtension(filename = '') {
+  const lowerName = String(filename).trim().toLowerCase();
+  if (!lowerName.includes('.')) return false;
+  return ALLOWED_AUDIO_EXT.has(lowerName.slice(lowerName.lastIndexOf('.')));
+}
+
+function isAllowedAudioFile(file) {
+  const mime = String(file?.mimetype || '').trim().toLowerCase();
+  if (ALLOWED_AUDIO_MIME.has(mime)) return true;
+  return hasAllowedAudioExtension(file?.originalname);
+}
 
 function runUpload(req, res, next) {
   upload.single('file')(req, res, (err) => {
@@ -79,8 +96,11 @@ router.post('/visits/:id/entries', auth, runUpload, asyncHandler(async (req, res
     }
 
     if (type === 'audio') {
-      if (!ALLOWED_AUDIO_MIME.has(req.file.mimetype)) {
-        return res.status(400).json({ message: `Invalid audio type. Allowed: ${Array.from(ALLOWED_AUDIO_MIME).join(', ')}` });
+      if (!isAllowedAudioFile(req.file)) {
+        return res.status(400).json({
+          message:
+            'Invalid audio type. Allowed extensions: .mp3, .wav, .webm, .mp4, .m4a, .aac'
+        });
       }
       if (req.file.size > MAX_AUDIO_BYTES) {
         return res.status(400).json({ message: 'Audio exceeds 10 MB limit' });

@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 const ACCEPTED_FILE_TYPES = {
-  audio: "audio/mpeg,audio/mp3,audio/wav,audio/webm",
+  audio:
+    "audio/mpeg,audio/mp3,audio/wav,audio/webm,audio/mp4,audio/m4a,audio/aac,audio/x-m4a,audio/mp4a-latm,video/mp4,.m4a,.mp4,.aac",
   // Use image/* so mobile browsers offer camera + gallery choices when available.
   photo: "image/*"
 };
