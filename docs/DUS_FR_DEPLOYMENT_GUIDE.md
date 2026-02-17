@@ -32,6 +32,12 @@ Backend runtime (high-level):
 - `MINIO_*`
 - `OPENAI_*`
 
+Recommended transcription-related variables:
+
+- `OPENAI_TRANSCRIBE_MODEL` (default `gpt-4o-mini-transcribe`)
+- `OPENAI_MODEL` (fallback supported by transcription service)
+- `OPENAI_TIMEOUT_MS` (default `60000`)
+
 ## Caddy Configuration (Recommended)
 
 Example site block:
@@ -72,6 +78,16 @@ Important notes:
 - Ensure service discovery uses the configured aliases:
   - `dus-fr-frontend` for the frontend
   - `dus-fr-backend` for the backend
+
+## Backend Image Requirement (Audio Robustness)
+
+- Backend runtime expects `ffmpeg` available in container for WAV fallback transcoding during transcription retries.
+- If backend Dockerfile changes are pulled, rebuild backend with no cache before deploy:
+
+```bash
+docker compose build backend --no-cache
+docker compose up -d backend
+```
 
 ## Security Verification (Mongo Not Exposed)
 

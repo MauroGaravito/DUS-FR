@@ -15,6 +15,7 @@ Backend role:
 - Multer (memory upload buffers)
 - MinIO SDK
 - OpenAI SDK (transcription and report generation pipeline)
+- `ffmpeg` in backend container (audio transcoding fallback for transcription robustness)
 
 ## Key Folders
 
@@ -49,6 +50,7 @@ Backend role:
 - Binaries are never stored in MongoDB.
 - Upload flow: request -> multer memory buffer -> MinIO object -> Mongo metadata.
 - Frontend plays media via backend proxy path, not direct bucket access.
+- Audio validation accepts primary and mobile MIME variants plus extension fallback (`.m4a/.mp4/.aac` included).
 
 ## AI Reporting and Transcription
 
@@ -56,6 +58,8 @@ Backend role:
 - Output constrained by JSON schema in `backend/src/ai/schemas/reportOutput.schema.json`.
 - AI engine validates output shape before persisting report record.
 - Transcription endpoint updates entry transcription fields and statuses.
+- Transcription service retries with fallback MIME/model combinations and can transcode to WAV when OpenAI rejects original container/codec.
+- AI report generation consumes text/audio context; images are maintained as annex references and not analyzed visually in current version.
 
 ## Error Handling
 

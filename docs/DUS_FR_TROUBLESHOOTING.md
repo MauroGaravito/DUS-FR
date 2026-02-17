@@ -65,6 +65,49 @@ Implementation reference:
 
 - `frontend/src/components/entries/EntryForm.jsx`
 
+## Audio Transcription Fails For `.m4a` / Mobile Audio
+
+Symptom:
+
+- `POST /entries/:id/transcribe` returns `500`.
+- Logs include:
+  - `Audio file might be corrupted or unsupported`
+  - `Invalid file format...`
+
+Current behavior:
+
+- Backend retries transcription with alternative MIME/model combinations.
+- If needed, backend transcodes audio to WAV (requires `ffmpeg` in backend container).
+
+Checks:
+
+- Rebuild backend image after Dockerfile changes (`ffmpeg` install):
+  - `docker compose build backend --no-cache`
+  - `docker compose up -d backend`
+- Confirm backend logs show fallback attempt lines when needed.
+
+## AI Report Generation Returns 500 With Empty Response
+
+Symptom:
+
+- `POST /visits/:id/generate-ai-report` returns `500`.
+- Logs include `OpenAI returned empty response`.
+
+Most common causes:
+
+1. Model refusal payload instead of content JSON (for example image-person analysis refusal).
+2. Upstream transient response missing `message.content`.
+
+Current mitigation:
+
+- AI report flow no longer sends image attachments for visual analysis.
+- Prompt explicitly instructs analysis based on text and audio transcriptions only.
+
+Checks:
+
+- Inspect backend logs for `OpenAI report empty/unexpected response payload`.
+- Verify the request still has accepted text/audio entries with useful content.
+
 ## MongoDB Exposure (Critical)
 
 Symptom:

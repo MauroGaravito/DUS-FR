@@ -25,6 +25,7 @@
 6. Audio entries remain `pending` until accepted or rejected.
 7. Optional transcription is requested per audio entry.
 8. Reports are generated from accepted, non-deleted entries.
+9. AI reports are generated from text and audio transcription context; images are surfaced as annexes.
 
 ## Entry Lifecycle
 
@@ -39,7 +40,8 @@ Constraints:
 ## Reporting Modes
 
 - Standard report: deterministic Markdown assembly by backend.
-- AI report: JSON output validated against schema, then rendered in frontend.
+- AI report: JSON output validated against schema, then rendered in frontend editor/workspace.
+- AI report scope currently excludes image visual analysis to avoid policy/refusal instability.
 - Latest report retrieval: one endpoint returns most recent stored report per visit.
 
 ## Security Model

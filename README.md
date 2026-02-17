@@ -28,3 +28,10 @@ Default seeded user:
 - Email: `engineer@example.com`
 - Password: `password123`
 
+## Current Functional Notes
+
+- Audio upload supports `mp3`, `wav`, `webm`, `mp4`, `m4a`, `aac` and common mobile MIME variants.
+- Audio transcription includes robust fallback handling and may transcode to WAV with `ffmpeg` when upstream rejects original containers/codecs.
+- AI report generation focuses on text entries and audio transcriptions.
+- Images are presented as annexes in reports (not analyzed by AI in current version).
+

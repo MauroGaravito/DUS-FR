@@ -111,7 +111,9 @@ Entry lifecycle:
 Validation:
 
 - Text minimum length: 5 chars.
-- Audio MIME: `audio/mpeg`, `audio/mp3`, `audio/wav`, `audio/webm`, `audio/mp4`, `audio/m4a`, `audio/aac`.
+- Audio MIME (primary): `audio/mpeg`, `audio/mp3`, `audio/wav`, `audio/webm`, `audio/mp4`, `audio/m4a`, `audio/aac`.
+- Audio MIME (mobile/common variants): `audio/x-m4a`, `audio/mp4a-latm`, `video/mp4`, `application/mp4`.
+- Audio extension fallback is applied for: `.mp3`, `.wav`, `.webm`, `.mp4`, `.m4a`, `.aac`.
 - Audio max size: 10 MB.
 - Photo MIME: `image/jpeg`, `image/png`.
 - Photo max size: 5 MB.
@@ -146,6 +148,7 @@ Trigger audio transcription.
 - Blocked if status is `processing` or `done`.
 - Success writes `transcription`, `transcriptionStatus=done`, `transcribedAt`.
 - Failure writes `transcriptionStatus=error`, `transcriptionError`.
+- Transcription pipeline may retry with alternative MIME/model combinations and can transcode to WAV fallback when needed.
 
 Response `200`: `{ "entry": { ... } }`
 Errors: `400`, `404`, `500`.
@@ -166,6 +169,9 @@ Errors: `404` object missing, `500` stream error.
 
 Generates deterministic Markdown report from accepted, non-deleted entries.
 
+- Includes professional sections (header, objective, scope/method, observations, findings, transcription analysis).
+- Includes image annexes rendered as Markdown images.
+
 Response `200`:
 
 ```json
@@ -180,6 +186,11 @@ Generates AI JSON report from accepted, non-deleted entries.
 
 - Industry prompt selected from backend prompt files.
 - If omitted, industry defaults to forestry.
+- Supported optional request fields:
+  - `industry` (string)
+  - `language` (`en` | `es` | `pt`, defaults to `en`)
+- AI analysis uses accepted text entries and audio transcriptions.
+- Images are kept as annex/context references and are not visually analyzed in current implementation.
 
 Request (optional):
 

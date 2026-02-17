@@ -1,6 +1,11 @@
 # DUS Forestry Report Template Reference
 
-This file documents the forestry markdown template used by the frontend renderer.
+This file documents the forestry markdown template used for deterministic report rendering.
+
+Notes:
+
+- AI reports are stored as structured JSON and rendered through the AI workspace UI.
+- Image annexes for AI report view are rendered by frontend components, not by this template file.
 
 Runtime template source:
 

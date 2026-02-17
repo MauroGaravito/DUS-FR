@@ -23,6 +23,13 @@ All central docs use the `DUS_FR_` prefix and unique names to avoid ambiguity ac
 - `docs/DUS_FR_DEPLOYMENT_GUIDE.md` - Docker Compose + Dockploy + Caddy deployment notes (frontend served by Nginx).
 - `docs/DUS_FR_TROUBLESHOOTING.md` - known issues and how to verify/fix them quickly.
 
+## Current Behavior Snapshot
+
+- Audio upload accepts modern mobile formats (`m4a/mp4/aac`) in addition to `mp3/wav/webm`.
+- Transcription pipeline supports retry strategies and WAV transcoding fallback for unsupported/corrupted container errors.
+- AI report generation is text/transcription-driven; images are handled as annexes (not visually analyzed).
+- Report workspace displays AI structured sections and image annexes.
+
 ## Runtime Stack
 
 - Frontend: React + Vite + Material UI v5 + React Router v6

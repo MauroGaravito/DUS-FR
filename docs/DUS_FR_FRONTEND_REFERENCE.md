@@ -30,7 +30,9 @@ frontend/src
       EntryItem.jsx
       EntryForm.jsx
     reports/
-      ReportViewer.jsx
+      ReportViewerLegacy.jsx
+      ReportViewerWorkspace.jsx
+      EditableAIReport.jsx
   pages/
     Login.jsx
     Dashboard.jsx
@@ -83,15 +85,16 @@ This matches the recommended Caddy routing where `/api/*` is proxied to the back
 ## Media Capture Notes (Mobile)
 
 - Photo upload uses `accept="image/*"` and a camera capture option (`capture="environment"`) so mobile browsers can offer Camera + Gallery choices when available.
-- Audio upload remains a file-based flow.
+- Audio upload remains a file-based flow and accepts expanded mobile-compatible MIME/extensions including `m4a/mp4/aac`.
 
 ## Reporting UI Behavior
 
 - Markdown report rendered via `react-markdown`.
-- AI report `content` is parsed and shown as formatted sections:
+- AI report `content` is parsed and shown as editable structured sections:
 - Executive summary
 - Observations list
-- Findings with severity chips
+- Findings (title, severity, evidence, recommendation)
 - Limitations and conclusion
+- In report workspace, accepted photos are rendered as image annexes below AI sections.
 
 No backend API contract changes were introduced.

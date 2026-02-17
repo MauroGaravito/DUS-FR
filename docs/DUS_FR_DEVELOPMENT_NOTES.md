@@ -6,6 +6,8 @@
 - Frontend was refactored from single-page flow to routed modular architecture.
 - Documentation was renamed with unique `DUS_FR_` prefixes and centralized under `docs/`.
 - Frontend production serving uses Nginx (static `dist/`) behind Caddy reverse proxy.
+- Audio ingestion/transcription is stable for common mobile formats including `.m4a`.
+- AI reports are stabilized by restricting analysis scope to text + audio transcriptions.
 
 ## Major Design Decisions
 
@@ -27,8 +29,10 @@
 
 - Audio entries require explicit review state transitions.
 - Transcription is user-triggered and asynchronous.
+- Transcription includes fallback retries and optional WAV transcoding when upstream rejects original media container/codec.
 - Report generation requires accepted non-deleted entries.
 - Backend media proxy is intentionally unauthenticated for browser playback compatibility.
+- AI report UI includes image annex rendering, while AI model itself does not perform visual image analysis in this release.
 
 ## Known Limitations
 
@@ -36,6 +40,7 @@
 - Limited role/authorization granularity beyond authenticated user access.
 - No antivirus scanning or deep content inspection for uploads.
 - Latest-report retrieval model favors most recent report over version history.
+- AI report quality still depends on entry quality/coverage; sparse text/transcriptions can produce generic summaries.
 
 ## Suggested Next Iterations
 
