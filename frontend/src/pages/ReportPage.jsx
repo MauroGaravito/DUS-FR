@@ -109,6 +109,7 @@ function ReportPage() {
   const [visit, setVisit] = useState(null);
   const [report, setReport] = useState(null);
   const [hasAcceptedEntries, setHasAcceptedEntries] = useState(false);
+  const [annexImages, setAnnexImages] = useState([]);
   const [editableContent, setEditableContent] = useState({ ...EMPTY_AI_CONTENT });
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -137,6 +138,14 @@ function ReportPage() {
         setReport(selectedReport);
         setHasAcceptedEntries(
           (entriesData.entries || []).some((entry) => entry.status === "accepted" && !entry.deleted)
+        );
+        setAnnexImages(
+          (entriesData.entries || [])
+            .filter((entry) => entry.status === "accepted" && !entry.deleted && entry.type === "photo")
+            .map((entry) => ({
+              url: entry.fileUrl || "",
+              note: entry.text || ""
+            }))
         );
 
         if (selectedReport?.type === "ai") {
@@ -302,6 +311,7 @@ function ReportPage() {
         documentRef={documentRef}
         visit={visit}
         report={report}
+        annexImages={annexImages}
         loading={processing}
         hasAcceptedEntries={hasAcceptedEntries}
         editableContent={editableContent}

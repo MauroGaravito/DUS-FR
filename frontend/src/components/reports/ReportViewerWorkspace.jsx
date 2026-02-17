@@ -14,6 +14,7 @@ function ReportViewerWorkspace({
   documentRef,
   visit,
   report,
+  annexImages,
   loading,
   hasAcceptedEntries,
   editableContent,
@@ -29,6 +30,7 @@ function ReportViewerWorkspace({
   const { t } = useTranslation();
   const reportTypeLabel = report?.type === "ai" ? t("aiType") : t("classicType");
   const isAIReport = report?.type === "ai";
+  const aiAnnexImages = Array.isArray(annexImages) ? annexImages : [];
 
   return (
     <Stack spacing={2.5}>
@@ -118,11 +120,49 @@ function ReportViewerWorkspace({
             )}
 
             {report && report.type === "ai" && editableContent && (
-              <EditableAIReport
-                editableContent={editableContent}
-                setEditableContent={setEditableContent}
-                disabled={savingChanges || loading}
-              />
+              <Stack spacing={2.5}>
+                <EditableAIReport
+                  editableContent={editableContent}
+                  setEditableContent={setEditableContent}
+                  disabled={savingChanges || loading}
+                />
+
+                <Divider />
+                <Stack spacing={1.5}>
+                  <Typography variant="h6">Image Annexes</Typography>
+                  {!aiAnnexImages.length && (
+                    <Typography variant="body2" color="text.secondary">
+                      No image annexes available.
+                    </Typography>
+                  )}
+                  {aiAnnexImages.map((image, index) => (
+                    <Stack key={image.url || `annex-${index}`} spacing={1}>
+                      <Typography variant="subtitle2">Image {index + 1}</Typography>
+                      {image.url ? (
+                        <Box
+                          component="img"
+                          src={image.url}
+                          alt={`Annex image ${index + 1}`}
+                          sx={{
+                            width: "100%",
+                            maxWidth: 760,
+                            borderRadius: 1.5,
+                            border: "1px solid",
+                            borderColor: "divider"
+                          }}
+                        />
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          Image URL not available.
+                        </Typography>
+                      )}
+                      <Typography variant="caption" color="text.secondary">
+                        {image.note || "No description provided."}
+                      </Typography>
+                    </Stack>
+                  ))}
+                </Stack>
+              </Stack>
             )}
 
             {report && report.type !== "ai" && (
